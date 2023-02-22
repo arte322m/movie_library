@@ -71,6 +71,23 @@ def registration(request):
     return render(request, 'kinokino/registration.html')
 
 
+def base_search(request):
+    return render(request, 'kinokino/search_page.html')
+
+
+@require_POST
+def searching(request):
+    search_text = request.POST['search_text']
+    return redirect('kinokino:search', search_text=search_text)
+
+
+def search(request, search_text):
+    context = {
+        'search_text': search_text,
+    }
+    return render(request, 'kinokino/search.html', context)
+
+
 def main(request):
     context = {
 
