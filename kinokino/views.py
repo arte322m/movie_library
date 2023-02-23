@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from kinokino.kinopoisk_api_search import search_function
 from kinokino.models import UserProfile
 
 
@@ -113,11 +114,13 @@ def search(request, search_text):
         if param == 'g_':
             context.setdefault(new_param, [])
             context[new_param].append(text[2:])
+            params_kinopoisk.append(('field', params_dict_reverse[new_param]))
+            params_kinopoisk.append(('search', text[2:]))
+        else:
+            params_kinopoisk.append(('field', params_dict_reverse[new_param]))
+            params_kinopoisk.append(('search', text[2:]))
         context.setdefault(new_param, text[2:])
-        # params_kinopoisk.append()
-
-    print(params_kinopoisk)
-
+    search_function['search_film'](params_kinopoisk)
     return render(request, 'kinokino/search.html', context)
 
 
