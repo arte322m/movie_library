@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -78,12 +79,6 @@ def base_search(request):
 
 @require_POST
 def searching(request):
-    # film_params = []
-    # if request.POST['search_text']:
-    #     film_name = f"f_{request.POST['search_text']}"
-    #     film_params.append(film_name)
-    # params = '__'.join(film_params)
-
     return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
@@ -92,6 +87,11 @@ def search(request, search_text):
         'field': 'name',
         'search': search_text,
     }
+    search_result = cache.get(f'search_result_{search_text}')
+    if not search_result:
+        search_result = search_function['search_film']([('field', 'name'), ('search', search_text)])
+        cache.set(f'search_result_{search_text}', search_result, 60*5)
+    context['search_result'] = search_result
     return render(request, 'kinokino/search.html', context)
 
 

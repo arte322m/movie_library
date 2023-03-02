@@ -3,8 +3,12 @@
 
 {% block searching %}
 
-    {% for search in search_result.docs %}
-            {{ search_name }}
+    <ol>
+    {% for film in search_result %}
+        <li>
+            {{ film.name }}
+        </li>
     {% endfor %}
+    </ol>
 
 {% endblock %}
