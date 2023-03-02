@@ -10,10 +10,7 @@ def search_film(params: list):
     result = {'films': []}
     response = requests.get(URL_MOVIE, params=params)
     response_json = response.json()
-    for film_info in response_json['docs']:
-        name = film_info['name']
-        poster = film_info['poster']['previewUrl']
-        result['films'].append({name: poster})
+    result = response_json['docs']
     return result
 
 
@@ -22,12 +19,6 @@ search_function = {'search_film': search_film}
 
 def main():
     pass
-    # params = {
-    #     'field': 'name',
-    #     'search': 'одни из нас',
-    #     'token': TOKEN,
-    # }
-    # search_film(params)
 
 
 if __name__ == '__main__':

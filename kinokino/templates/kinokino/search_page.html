@@ -6,111 +6,11 @@
 
         <div class="col-2 bg">
 
-            <div class="row">
-                <div class="px-1">Жанры</div>
-                <ul>
-                    <li class="px-2"> Аниме</li>
-                    <li class="px-2"> Биографии</li>
-                    <li class="px-2"> Боевики</li>
-                    <li class="px-2"> Вестерны</li>
-                    <li class="px-2"> Детективы</li>
-                    <li class="px-2"> Детские</li>
-                    <li class="px-2"> Документальный</li>
-                    <li class="px-2"> Драмы</li>
-                    <li class="px-2"> Игры</li>
-                    <li class="px-2"> Исторические</li>
-                    <li class="px-2"> Комедии</li>
-                    <li class="px-2"> Концерты</li>
-                    <li class="px-2"> Короткометражки</li>
-                    <li class="px-2"> Криминал</li>
-                    <li class="px-2"> Мелодрамы</li>
-                    <li class="px-2"> Музыкальные</li>
-                    <li class="px-2"> Мультфильмы</li>
-                    <li class="px-2"> Мюзиклы</li>
-                    <li class="px-2"> Новости</li>
-                    <li class="px-2"> Приключения</li>
-                    <li class="px-2"> Реальное ТВ</li>
-                    <li class="px-2"> Семейные</li>
-                    <li class="px-2"> Спортивное</li>
-                    <li class="px-2"> Ток-шоу</li>
-                    <li class="px-2"> Триллеры</li>
-                    <li class="px-2"> Ужасы</li>
-                    <li class="px-2"> Фантастика</li>
-                    <li class="px-2"> Фильмы-Нуар</li>
-                    <li class="px-2"> Фэнтези</li>
-                </ul>
-            </div>
-
-            <div class="row">
-                <div class="px-1">Годы</div>
-                <ul>
-                    <li class="px-2">2022 год</li>
-                    <li class="px-2">2021 год</li>
-                    <li class="px-2">2020 год</li>
-                    <li class="px-2">2019 год</li>
-                    <li class="px-2">2018 год</li>
-                    <li class="px-2">2017 год</li>
-                    <li class="px-2">2016 год</li>
-                    <li class="px-2">2015 год</li>
-                    <li class="px-2">2010-ые</li>
-                    <li class="px-2">2000-ые</li>
-                    <li class="px-2">1990-ые</li>
-                    <li class="px-2">1980-ые</li>
-                    <li class="px-2">1970-ые</li>
-                    <li class="px-2">1960-ые</li>
-                    <li class="px-2">1950-ые</li>
-                    <li class="px-2">1940-ые</li>
-                    <li class="px-2">1930-ые</li>
-                    <li class="px-2">1920-ые</li>
-                    <li class="px-2">1910-ые</li>
-                    <li class="px-2">1900-ые</li>
-                    <li class="px-2">1890-ые</li>
-                </ul>
-            </div>
-
-        </div>
-
-
-        <div class="col">
-            <div class="row">
             <h1>Поиск по названию</h1>
                 <form action="{% url 'kinokino:searching' %}" class="d-flex" role="search" method="post">
                     {% csrf_token %}
                     <label for id="Search">Название</label>
                     <input id="Search" class="form-control form-control text-bg me-2" type="search" placeholder="Название" aria-label="Search" value="{{ search_text }}" name="search_text" required>
-                    <label for="SelectGenre">Жанры</label>
-                    <select name="genre" id="SelectGenre">
-                        <option>Все жанры</option>
-                        <option>Аниме</option>
-                        <option>Биографии</option>
-                        <option>Боевики</option>
-                        <option>Вестерны</option>
-                        <option>Детективы</option>
-                        <option>Детские</option>
-                        <option>Документальный</option>
-                        <option>Драмы</option>
-                        <option>Игры</option>
-                        <option>Исторические</option>
-                        <option>Комедии</option>
-                        <option>Концерты</option>
-                        <option>Короткометражки</option>
-                        <option>Криминал</option>
-                        <option>Мелодрамы</option>
-                        <option>Музыкальные</option>
-                        <option>Мультфильмы</option>
-                        <option>Мюзиклы</option>
-                        <option>Новости</option>
-                        <option>Приключения</option>
-                        <option>Реальное ТВ</option>
-                        <option>Семейные</option>
-                        <option>Спортивное</option>
-                        <option>Ток-шоу</option>
-                        <option>Триллеры</option>
-                        <option>Ужасы</option>
-                        <option>Фантастика</option>
-                        <option>Фильмы-Нуар</option>
-                        <option>Фэнтези</option>
-                    </select>
                     <button class="btn btn-primary" type="submit">Поиск</button>
                 </form>
             </div>
