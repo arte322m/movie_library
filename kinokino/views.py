@@ -121,6 +121,7 @@ def search(request, search_text):
             params_kinopoisk.append(('search', text[2:]))
         context.setdefault(new_param, text[2:])
     search_function['search_film'](params_kinopoisk)
+
     return render(request, 'kinokino/search.html', context)
 
 
