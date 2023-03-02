@@ -7,8 +7,7 @@ SECOND_TOKEN = 'AGPD8ND-8BH47X9-N1TJEAH-1PG18YP'
 
 def search_film(params: list):
     params.append(('token', TOKEN))
-    result = {'films': []}
-    response = requests.get(URL_MOVIE, params=params)
+    response = requests.get(URL_MOVIE, params=params, timeout=20)
     response_json = response.json()
     result = response_json['docs']
     return result
