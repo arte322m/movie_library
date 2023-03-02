@@ -2,12 +2,9 @@
 {% load static %}
 
 {% block searching %}
-    {% for search in search_result.films %}
-        {% for search_name, search_url in search.items %}
-            {{ search_name }}
-            <img src="{{ search_url }}">
-        {% endfor %}
-    {% endfor %}
 
+    {% for search in search_result.docs %}
+            {{ search_name }}
+    {% endfor %}
 
 {% endblock %}

@@ -78,51 +78,20 @@ def base_search(request):
 
 @require_POST
 def searching(request):
-    film_params = []
-    if request.POST['search_text']:
-        film_name = f"f_{request.POST['search_text']}"
-        film_params.append(film_name)
-    if request.POST['genre'] and request.POST['genre'] != 'Все жанры':
-        film_genre = f'g_{request.POST["genre"]}'
-        film_params.append(film_genre)
-    params = '__'.join(film_params)
+    # film_params = []
+    # if request.POST['search_text']:
+    #     film_name = f"f_{request.POST['search_text']}"
+    #     film_params.append(film_name)
+    # params = '__'.join(film_params)
 
-    return redirect('kinokino:search', search_text=params)
+    return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
 def search(request, search_text):
-
-    context = {}
-    params_kinopoisk = []
-
-    params_dict = {
-        'f_': 'search_text',
-        'g_': 'genre',
-        'r_': 'rating',
-        'y_': 'year',
+    context = {
+        'field': 'name',
+        'search': search_text,
     }
-    params_dict_reverse = {
-        'search_text': 'name',
-        'genre': 'genres.name',
-        'rating': 'rating.kp',
-        'year': 'year',
-    }
-
-    for text in search_text.split('__'):
-        param = text[:2]
-        new_param = params_dict[param]
-        if param == 'g_':
-            context.setdefault(new_param, [])
-            context[new_param].append(text[2:])
-            params_kinopoisk.append(('field', params_dict_reverse[new_param]))
-            params_kinopoisk.append(('search', text[2:]))
-        else:
-            params_kinopoisk.append(('field', params_dict_reverse[new_param]))
-            params_kinopoisk.append(('search', text[2:]))
-        context.setdefault(new_param, text[2:])
-    search_result = search_function['search_film'](params_kinopoisk)
-    context['search_result'] = search_result
-
     return render(request, 'kinokino/search.html', context)
 
 
