@@ -87,8 +87,12 @@ def search(request, search_text):
         search_result = search_function['search_film']([('field', 'name'), ('search', search_text)])
         cache.set(f'search_result_{search_text}', search_result, 60*5)
     context['search_result'] = search_result
-    print(search_result)
     return render(request, 'kinokino/search.html', context)
+
+
+@require_POST
+def add_movie(request):
+    return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
 def main(request):
