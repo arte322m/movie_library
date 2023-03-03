@@ -2,22 +2,31 @@
 {% load static %}
 
 {% block content %}
-    <div class="row">
-        <div class="col">
-            <ol>
-                {% for film in search_result %}
-                    <div class="row mt-4">
-                        <li>
-                            <div class="col">
+
+        <ol>
+            {% for film in search_result %}
+                <div class="row mt-4">
+                    <li>
+                        <div class="row">
+                            <div class="col-2">
                                 <div class="row">
                                     <img style="width: 150px; height: 225px" src="{{ film.poster.previewUrl}}">
                                 </div>
-                                <div class="row">{{ film.name }}</div>
+                                    <div class="row">
+                                        {{ film.name }}({{ film.year }})
+                                    </div>
                             </div>
-                        </li>
-                    </div>
-                {% endfor %}
-            </ol>
-        </div>
-    </div>
+
+                            <div class="col">
+                                <form action="{% url 'kinokino:add_movie' %}" method="post">
+                                    {% csrf_token %}
+                                    <input name="search_text" value="{{ name }}" hidden>
+                                    <button type="submit">love this</button>
+                                </form>
+                            </div>
+                        </div>
+                    </li>
+                </div>
+            {% endfor %}
+        </ol>
 {% endblock %}
