@@ -1,3 +1,8 @@
-# from django.contrib import admin
+from django.contrib import admin
 
-# Register your models here.
+from kinokino.models import Movie, UserProfile, Season, Episode
+
+admin.site.register(UserProfile)
+admin.site.register(Movie)
+admin.site.register(Season)
+admin.site.register(Episode)

@@ -2,9 +2,10 @@
 {% load static %}
 
 {% block content %}
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
         <ol>
-            {% for film in search_result %}
+            {% for film in search_resul %}
                 <div class="row mt-4">
                     <li>
                         <div class="row">
@@ -16,14 +17,21 @@
                                         {{ film.name }}({{ film.year }})
                                     </div>
                             </div>
+                            {% if film.id not in movie_data %}
+                                <div class="col">
+                                    <form action="{% url 'kinokino:add_movie' %}" method="post">
+                                        {% csrf_token %}
+                                        <input name="search_text" value="{{ name }}" hidden>
+                                        <input name="movie_name" value="{{ film.name }}" hidden>
+                                        <input name="movie_id" value="{{ film.id }}" hidden>
+                                        <input name="movie_year" value="{{ film.year }}" hidden>
+                                        <input name="movie_type" value="{{ film.type }}" hidden>
+                                        <input name="release_years" value="{{ film.releaseYears }}" hidden>
+                                        <button type="submit">love this</button>
+                                    </form>
+                                </div>
+                            {% endif %}
 
-                            <div class="col">
-                                <form action="{% url 'kinokino:add_movie' %}" method="post">
-                                    {% csrf_token %}
-                                    <input name="search_text" value="{{ name }}" hidden>
-                                    <button type="submit">love this</button>
-                                </form>
-                            </div>
                         </div>
                     </li>
                 </div>
