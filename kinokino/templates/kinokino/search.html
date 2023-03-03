@@ -1,10 +1,23 @@
 {% extends 'kinokino/base.html' %}
 {% load static %}
 
-<ol>
-    {% for film in search_result %}
-        <li>
-            {{ film.name }}
-        </li>
-    {% endfor %}
-</ol>
+{% block content %}
+    <div class="row">
+        <div class="col">
+            <ol>
+                {% for film in search_result %}
+                    <div class="row mt-4">
+                        <li>
+                            <div class="col">
+                                <div class="row">
+                                    <img style="width: 150px; height: 225px" src="{{ film.poster.previewUrl}}">
+                                </div>
+                                <div class="row">{{ film.name }}</div>
+                            </div>
+                        </li>
+                    </div>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+{% endblock %}

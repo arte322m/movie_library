@@ -80,14 +80,14 @@ def searching(request):
 
 def search(request, search_text):
     context = {
-        'field': 'name',
-        'search': search_text,
+        'name': search_text,
     }
     search_result = cache.get(f'search_result_{search_text}')
     if not search_result:
         search_result = search_function['search_film']([('field', 'name'), ('search', search_text)])
         cache.set(f'search_result_{search_text}', search_result, 60*5)
     context['search_result'] = search_result
+    print(search_result)
     return render(request, 'kinokino/search.html', context)
 
 
