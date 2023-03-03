@@ -47,4 +47,3 @@ class Series(models.Model):
     date = models.DateField
     name = models.CharField(max_length=50)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, default=None)
-
