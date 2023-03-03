@@ -79,6 +79,7 @@ def searching(request):
 
 
 def search(request, search_text):
+
     context = {
         'field': 'name',
         'search': search_text,
