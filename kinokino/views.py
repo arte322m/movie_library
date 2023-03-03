@@ -1,9 +1,11 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from kinokino.kinopoisk_api_search import search_function
 from kinokino.models import UserProfile
 
 
@@ -71,20 +73,22 @@ def registration(request):
     return render(request, 'kinokino/registration.html')
 
 
-def base_search(request):
-    return render(request, 'kinokino/search_page.html')
-
-
 @require_POST
 def searching(request):
-    search_text = request.POST['search_text']
-    return redirect('kinokino:search', search_text=search_text)
+    return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
 def search(request, search_text):
+
     context = {
-        'search_text': search_text,
+        'field': 'name',
+        'search': search_text,
     }
+    search_result = cache.get(f'search_result_{search_text}')
+    if not search_result:
+        search_result = search_function['search_film']([('field', 'name'), ('search', search_text)])
+        cache.set(f'search_result_{search_text}', search_result, 60*5)
+    context['search_result'] = search_result
     return render(request, 'kinokino/search.html', context)
 
 

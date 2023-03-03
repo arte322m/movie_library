@@ -1,6 +1,10 @@
-{% extends 'kinokino/search_page.html' %}
+{% extends 'kinokino/base.html' %}
 {% load static %}
 
-{% block searching %}
-
-{% endblock %}
+<ol>
+    {% for film in search_result %}
+        <li>
+            {{ film.name }}
+        </li>
+    {% endfor %}
+</ol>
