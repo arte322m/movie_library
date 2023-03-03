@@ -8,4 +8,7 @@ urlpatterns = [
     path('accounts/login/', views.login_view, name='login'),
     path('accounts/registration/', views.registration, name='registration'),
     path('switch_theme/', views.switch_theme, name='switch_theme'),
+    path('searching/', views.searching, name='searching'),
+    path('search/', views.base_search, name='base_search'),
+    path('search/<str:search_text>', views.search, name='search'),
 ]
