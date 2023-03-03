@@ -43,7 +43,6 @@ class Season(models.Model):
 
 class Series(models.Model):
     number = models.IntegerField
-    movie_id = models.ForeignKey(Movie, on_delete=models.CASCADE)
     date = models.DateField
     name = models.CharField(max_length=50)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, default=None)
