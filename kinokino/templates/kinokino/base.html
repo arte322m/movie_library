@@ -32,7 +32,7 @@
                 <li>
                     <form action="{% url 'kinokino:searching' %}" class="d-flex px-2" role="search" method="post">
                         {% csrf_token %}
-                        <input id="Search" class="form-control form-control text-bg me-2" type="search" placeholder="Название" aria-label="Search" value="{{ search }}" name="search_text" required>
+                        <input id="Search" class="form-control form-control text-bg me-2" type="search" placeholder="Название" aria-label="Search" value="{{ name }}" name="search_text" required>
                         <button class="btn btn-primary" type="submit">Поиск</button>
                     </form>
                 </li>
