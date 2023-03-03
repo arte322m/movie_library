@@ -36,14 +36,15 @@ class Movie(models.Model):
     series_count = models.IntegerField(null=True)
 
 
+class Season(models.Model):
+    movie_id = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    number = models.IntegerField
+
+
 class Series(models.Model):
     number = models.IntegerField
-    tv_series_id = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    movie_id = models.ForeignKey(Movie, on_delete=models.CASCADE)
     date = models.DateField
     name = models.CharField(max_length=50)
+    season = models.ForeignKey(Season, on_delete=models.CASCADE, default=None)
 
-
-class Season(models.Model):
-    tv_series_id = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    series = models.ForeignKey(Series, on_delete=models.CASCADE)
-    number = models.IntegerField
