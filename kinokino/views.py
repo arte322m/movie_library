@@ -79,7 +79,6 @@ def searching(request):
 
 
 def search(request, search_text):
-
     context = {
         'name': search_text,
     }
