@@ -28,16 +28,6 @@ class Movie(models.Model):
         (ANIMATED_SERIES, 'Animated-Series'),
         (TV_SHOW, 'TV-Show'),
     ]
-    # NONE = 'Не смотрю'
-    # PLANNED_TO_WATCH = 'Хочу посмотреть'
-    # WATCHING = 'Смотрю'
-    # COMPLETED = 'Просмотрено'
-    # MOVIE_STATUS = [
-    #     (NONE, 'не смотрю'),
-    #     (PLANNED_TO_WATCH, 'хочу посмотреть'),
-    #     (WATCHING, 'смотрю'),
-    #     (COMPLETED, 'просмотрено'),
-    # ]
     kinopoisk_id = models.IntegerField(default=None)
     name = models.CharField(max_length=50)
     year = models.IntegerField(default=None)
@@ -45,6 +35,8 @@ class Movie(models.Model):
     seasons_count = models.IntegerField(null=True)
     release_year_start = models.IntegerField(null=True)
     release_year_end = models.IntegerField(null=True)
+    episodes_count = models.IntegerField(null=True)
+    episodes_complete = models.IntegerField(max_length=episodes_count, null=True, default=0)
     favorite = models.ManyToManyField(UserProfile)
 
 
@@ -56,6 +48,22 @@ class Season(models.Model):
 
 class Episode(models.Model):
     number = models.IntegerField(default=None)
-    date = models.DateTimeField(default=None)
+    date = models.DateField(default=None)
     name = models.CharField(max_length=50, null=True)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, default=None)
+
+
+class MovieStatus(models.Model):
+    NONE = 'Не смотрю'
+    PLANNED_TO_WATCH = 'Хочу посмотреть'
+    WATCHING = 'Смотрю'
+    COMPLETED = 'Просмотрено'
+    MOVIE_STATUS = [
+        (NONE, 'не смотрю'),
+        (PLANNED_TO_WATCH, 'хочу посмотреть'),
+        (WATCHING, 'смотрю'),
+        (COMPLETED, 'просмотрено'),
+    ]
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    status = models.CharField(max_length=16, choices=MOVIE_STATUS, default=NONE)

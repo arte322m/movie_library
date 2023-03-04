@@ -107,6 +107,8 @@ def add_movie(request):
     year = int(request.POST['movie_year'])
     movie_type = request.POST['movie_type']
     if request.POST['release_years']:
+        all_episode_count = 0
+        seasons = []
         search_result = search_function['search_series']([('movieId', kinopoisk_id)])
         release_year_start = request.POST['release_years'][11:15]
         release_year_end = request.POST['release_years'][24:28]
@@ -124,7 +126,13 @@ def add_movie(request):
         new_movie.save()
         for season_info in search_result:
             number = season_info['number']
+            if number == 0:
+                continue
+            if number in seasons:
+                continue
+            seasons.append(number)
             episodes_count = len(season_info['episodes'])
+            all_episode_count += episodes_count
             new_season = Season.objects.create(
                 movie_id=new_movie,
                 number=number,
@@ -136,14 +144,16 @@ def add_movie(request):
                     episode_name = episodes_info['name']
                 else:
                     episode_name = episodes_info['enName']
-                date_str = episodes_info['date']
-                date = datetime.datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+                date_str = episodes_info['date'][:10]
+                date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
                 Episode.objects.create(
                     number=number,
                     date=date,
                     name=episode_name,
                     season=new_season,
                 )
+        new_movie.episodes_count = all_episode_count
+        new_movie.save()
     else:
         new_movie = Movie.objects.create(
             name=name,
@@ -180,7 +190,7 @@ def favorite_movie(request):
 
 
 def all_movies(request):
-    movie_data = Movie.objects.values_list('kinopoisk_id', 'name')
+    movie_data = Movie.objects.all()
     context = {
         'movie_data': movie_data,
     }
@@ -192,11 +202,12 @@ def all_movies(request):
 
 
 def all_seasons(request, movie_id):
-    movie_data = Movie.objects.values_list('kinopoisk_id', 'name')
+    movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
     season_info = movie.season_set.all()
     context = {
         'movie_data': movie_data,
+        'movie': movie,
         'season_info': season_info,
     }
     if request.user.is_authenticated:
@@ -207,12 +218,13 @@ def all_seasons(request, movie_id):
 
 
 def all_episodes(request, movie_id, season_id):
-    movie_data = Movie.objects.values_list('kinopoisk_id', 'name')
+    movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
     season_info = movie.season_set.all()
-    episodes = season_info.get(number=season_id).episode_set.all()
+    episodes = season_info.get(number=season_id).episode_set.all().order_by('number')
     context = {
         'movie_data': movie_data,
+        'movie': movie,
         'season_info': season_info,
         'episodes': episodes,
     }

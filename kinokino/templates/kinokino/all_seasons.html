@@ -2,6 +2,39 @@
 
 {% block season %}
 
+    {% if not movie.release_year_start %}
+        <div class="row">
+            <div class="col">
+                {{ movie.name }}
+            </div>
+
+            <div class="col">
+                ({{ movie.year }})
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col">
+                {{ movie.name }}
+            </div>
+            <div class="col">
+                ({{ movie.release_year_start }} - {{ movie.release_year_end }})
+            </div>
+        </div>
+
+        <div class="row">
+            Всего серий: {{ movie.episodes_count }}
+        </div>
+
+        <div class="row">
+            Просмотрено: {{ movie.episodes_complete }}/{{ movie.episodes_count }}
+        </div>
+
+        <div class="row">
+            Сезонов: {{ movie.seasons_count }}
+        </div>
+    {% endif %}
+
     <ul>
         {% for season in season_info %}
             <li>
