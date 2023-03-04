@@ -45,7 +45,6 @@ class Movie(models.Model):
     seasons_count = models.IntegerField(null=True)
     release_year_start = models.IntegerField(null=True)
     release_year_end = models.IntegerField(null=True)
-    status = models.CharField(max_length=16, choices=MOVIE_STATUS, default=NONE)
 
 
 class Season(models.Model):
