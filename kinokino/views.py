@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from kinokino.kinopoisk_api_search import search_function
-from kinokino.models import UserProfile, Movie, Episode, Season
+from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus
 
 
 @require_POST
@@ -165,7 +165,7 @@ def add_movie(request):
     return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
-@login_required()
+@login_required
 def favorite(request):
     user_info = UserProfile.objects.get(user_id=request.user.id)
     favorite_movies = user_info.movie_set.all()
@@ -205,9 +205,11 @@ def all_seasons(request, movie_id):
     movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
     season_info = movie.season_set.all()
+    statuses = MovieStatus.MOVIE_STATUS
     context = {
         'movie_data': movie_data,
         'movie': movie,
+        'statuses': statuses,
         'season_info': season_info,
     }
     if request.user.is_authenticated:
@@ -222,9 +224,11 @@ def all_episodes(request, movie_id, season_id):
     movie = Movie.objects.get(kinopoisk_id=movie_id)
     season_info = movie.season_set.all()
     episodes = season_info.get(number=season_id).episode_set.all().order_by('number')
+    statuses = MovieStatus.MOVIE_STATUS
     context = {
         'movie_data': movie_data,
         'movie': movie,
+        'statuses': statuses,
         'season_info': season_info,
         'episodes': episodes,
     }
@@ -233,6 +237,12 @@ def all_episodes(request, movie_id, season_id):
         favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
         context['favorite_movie_list'] = favorite_movie_list
     return render(request, 'kinokino/all_episodes.html', context)
+
+
+@login_required
+@require_POST
+def add_status(request):
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 def main(request):

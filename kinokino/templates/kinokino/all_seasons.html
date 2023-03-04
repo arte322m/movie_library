@@ -5,7 +5,9 @@
     {% if not movie.release_year_start %}
         <div class="row">
             <div class="col">
-                {{ movie.name }}
+                <div class="row">
+                    {{ movie.name }}
+                </div>
             </div>
 
             <div class="col">
@@ -15,7 +17,20 @@
     {% else %}
         <div class="row">
             <div class="col">
-                {{ movie.name }}
+                <div class="row">
+                    {{ movie.name }}
+                </div>
+
+                <div class="row">
+                    <form method="post">
+                    {% csrf_token %}
+                        <select name="status">
+                            {% for status in statuses %}
+                                <option>{{ status|first }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
             </div>
             <div class="col">
                 ({{ movie.release_year_start }} - {{ movie.release_year_end }})

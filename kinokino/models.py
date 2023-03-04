@@ -59,7 +59,6 @@ class MovieStatus(models.Model):
     WATCHING = 'Смотрю'
     COMPLETED = 'Просмотрено'
     MOVIE_STATUS = [
-        (NONE, 'не смотрю'),
         (PLANNED_TO_WATCH, 'хочу посмотреть'),
         (WATCHING, 'смотрю'),
         (COMPLETED, 'просмотрено'),
