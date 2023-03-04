@@ -24,6 +24,8 @@
 
                 <a href="{% url 'kinokino:all_movies' %}" class="nav-link px-2">Фильмы и сериалы</a>
 
+                <a href="{% url 'kinokino:favorite' %}" class="nav-link px-2">Избранное</a>
+
                 <li>
                     <form action="{% url 'kinokino:switch_theme' %}" method="post">
                         {% csrf_token %}
