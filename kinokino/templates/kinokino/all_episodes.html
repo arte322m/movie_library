@@ -1,0 +1,11 @@
+{% extends 'kinokino/all_seasons.html' %}
+
+{% block episode %}
+    <ol>
+        {% for episode in episodes %}
+            <li>
+                {{ episode.name }}
+            </li>
+        {% endfor %}
+    </ol>
+{% endblock %}

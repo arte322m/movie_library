@@ -22,6 +22,8 @@
 
                 <a href="/" class="nav-link px-2">Главная</a>
 
+                <a href="{% url 'kinokino:all_movies' %}" class="nav-link px-2">Фильмы и сериалы</a>
+
                 <li>
                     <form action="{% url 'kinokino:switch_theme' %}" method="post">
                         {% csrf_token %}

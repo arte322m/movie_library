@@ -160,6 +160,38 @@ def favorite(request):
     return render(request, 'kinokino/favorite.html')
 
 
+def all_movies(request):
+    movie_data = Movie.objects.values_list('kinopoisk_id', 'name')
+    context = {
+        'movie_data': movie_data,
+    }
+    return render(request, 'kinokino/all_movies.html', context)
+
+
+def all_seasons(request, movie_id):
+    movie_data = Movie.objects.values_list('kinopoisk_id', 'name')
+    movie = Movie.objects.get(kinopoisk_id=movie_id)
+    season_info = movie.season_set.all()
+    context = {
+        'movie_data': movie_data,
+        'season_info': season_info,
+    }
+    return render(request, 'kinokino/all_seasons.html', context)
+
+
+def all_episodes(request, movie_id, season_id):
+    movie_data = Movie.objects.values_list('kinopoisk_id', 'name')
+    movie = Movie.objects.get(kinopoisk_id=movie_id)
+    season_info = movie.season_set.all()
+    episodes = season_info.get(number=season_id).episode_set.all()
+    context = {
+        'movie_data': movie_data,
+        'season_info': season_info,
+        'episodes': episodes,
+    }
+    return render(request, 'kinokino/all_episodes.html', context)
+
+
 def main(request):
     context = {
 
