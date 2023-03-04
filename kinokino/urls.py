@@ -11,4 +11,5 @@ urlpatterns = [
     path('searching/', views.searching, name='searching'),
     path('search/<str:search_text>', views.search, name='search'),
     path('add/', views.add_movie, name='add_movie'),
+    path('favorite/', views.favorite, name='favorite'),
 ]

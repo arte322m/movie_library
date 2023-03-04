@@ -13,11 +13,11 @@ def search_series(params: list):
     if not response.ok:
         return 'всё плохо(((('
     response_json = response.json()
-    result = response_json
+    result = response_json['docs']
     if len(result) > 1:
-        episodes = result['docs'][-1]['episodes'][0]
+        episodes = result[-1]['episodes'][0]
         if not episodes['enName'] and not episodes['name'] and not episodes['date']:
-            result = result['docs'][:-1]
+            result = result[:-1]
     return result
 
 

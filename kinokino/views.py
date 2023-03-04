@@ -109,19 +109,19 @@ def add_movie(request):
         search_result = search_function['search_series']([('movieId', kinopoisk_id)])
         release_year_start = request.POST['release_years'][11:15]
         release_year_end = request.POST['release_years'][24:28]
-        if release_year_end == 'null':
-            release_year_end = None
-        if release_year_start == 'null':
-            release_year_start = None
         new_movie = Movie.objects.create(
             name=name,
             kinopoisk_id=kinopoisk_id,
             year=year,
             seasons_count=len(search_result),
-            release_year_start=release_year_start,
-            release_year_end=release_year_end,
+            # release_year_start=release_year_start,
+            # release_year_end=release_year_end,
         )
         new_movie.type = movie_type
+        if release_year_start != 'None':
+            new_movie.release_year_start = release_year_start
+        if release_year_end != 'None':
+            new_movie.release_year_end = release_year_end
         new_movie.save()
         for season_info in search_result:
             number = season_info['number']
@@ -154,6 +154,10 @@ def add_movie(request):
         new_movie.type = movie_type
         new_movie.save()
     return redirect('kinokino:search', search_text=request.POST['search_text'])
+
+
+def favorite(request):
+    return render(request, 'kinokino/favorite.html')
 
 
 def main(request):
