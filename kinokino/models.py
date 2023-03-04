@@ -28,14 +28,24 @@ class Movie(models.Model):
         (ANIMATED_SERIES, 'Animated-Series'),
         (TV_SHOW, 'TV-Show'),
     ]
+    NONE = 'Не смотрю'
+    PLANNED_TO_WATCH = 'Хочу посмотреть'
+    WATCHING = 'Смотрю'
+    COMPLETED = 'Просмотрено'
+    MOVIE_STATUS = [
+        (NONE, 'не смотрю'),
+        (PLANNED_TO_WATCH, 'хочу посмотреть'),
+        (WATCHING, 'смотрю'),
+        (COMPLETED, 'просмотрено'),
+    ]
     kinopoisk_id = models.IntegerField(default=None)
     name = models.CharField(max_length=50)
     year = models.IntegerField(default=None)
     type = models.CharField(max_length=15, choices=TYPE_MOVIE, default=None, null=True)
     seasons_count = models.IntegerField(null=True)
-    series_count = models.IntegerField(null=True)
-    release_year_start = models.DateField(null=True)
-    release_year_end = models.DateField(null=True)
+    release_year_start = models.IntegerField(null=True)
+    release_year_end = models.IntegerField(null=True)
+    status = models.CharField(max_length=16, choices=MOVIE_STATUS, default=NONE)
 
 
 class Season(models.Model):
@@ -46,6 +56,6 @@ class Season(models.Model):
 
 class Episode(models.Model):
     number = models.IntegerField(default=None)
-    date = models.DateField(default=None)
+    date = models.DateTimeField(default=None)
     name = models.CharField(max_length=50)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, default=None)

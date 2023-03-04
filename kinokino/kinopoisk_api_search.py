@@ -15,14 +15,14 @@ def search_series(params: list):
     response_json = response.json()
     result = response_json
     if len(result) > 1:
-        episodes = result[-1]['episodes'][0]
+        episodes = result['docs'][-1]['episodes'][0]
         if not episodes['enName'] and not episodes['name'] and not episodes['date']:
-            result = result[:-1]
+            result = result['docs'][:-1]
     return result
 
 
 def search_film(params: list):
-    params.append(('selectFields', 'movieId number episodesCount episodes'))
+    params.append(('selectFields', 'id type name year releaseYears poster.previewUrl'))
     params.append(('limit', 30))
     params.append(('token', TOKEN))
     response = requests.get(URL_MOVIE, params=params, timeout=20)

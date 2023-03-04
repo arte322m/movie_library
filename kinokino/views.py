@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.cache import cache
@@ -86,14 +88,14 @@ def search(request, search_text):
     }
     search_result = cache.get(f'search_result_{search_text}')
     if not search_result:
-        search_result = search_function['search_film']([('field', 'name'), ('search', search_text)])
+        search_result = search_function['search_film']([
+            ('name', search_text)
+        ])
         if search_result == 'всё плохо((((':
             return render(request, 'kinokino/search.html', {'seach_text': search_text, 'error_message': search_result})
-        print(search_result)
-
-        context['search_result'] = search_result
         cache.set(f'search_result_{search_text}', search_result, 60*5)
-    print(search_result)
+
+    context['search_result'] = search_result
     return render(request, 'kinokino/search.html', context)
 
 
@@ -107,14 +109,25 @@ def add_movie(request):
         search_result = search_function['search_series']([('movieId', kinopoisk_id)])
         release_year_start = request.POST['release_years'][11:15]
         release_year_end = request.POST['release_years'][24:28]
-        series_count = 0
+        if release_year_end == 'null':
+            release_year_end = None
+        if release_year_start == 'null':
+            release_year_start = None
+        new_movie = Movie.objects.create(
+            name=name,
+            kinopoisk_id=kinopoisk_id,
+            year=year,
+            seasons_count=len(search_result),
+            release_year_start=release_year_start,
+            release_year_end=release_year_end,
+        )
+        new_movie.type = movie_type
+        new_movie.save()
         for season_info in search_result:
-            movie_id = kinopoisk_id
             number = season_info['number']
             episodes_count = len(season_info['episodes'])
-            series_count += episodes_count
             new_season = Season.objects.create(
-                movie_id=movie_id,
+                movie_id=new_movie,
                 number=number,
                 episodes_count=episodes_count
             )
@@ -124,26 +137,14 @@ def add_movie(request):
                     episode_name = episodes_info['name']
                 else:
                     episode_name = episodes_info['enName']
-                date = episodes_info['date']
+                date_str = episodes_info['date']
+                date = datetime.datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
                 Episode.objects.create(
                     number=number,
                     date=date,
                     name=episode_name,
                     season=new_season,
                 )
-        if release_year_end == 'null':
-            release_year_end = None
-        new_movie = Movie.objects.create(
-            name=name,
-            kinopoisk_id=kinopoisk_id,
-            year=year,
-            series_count=series_count,
-            seasons_count=len(search_result),
-            release_year_start=release_year_start,
-            release_year_end=release_year_end,
-        )
-        new_movie.type = movie_type
-        new_movie.save()
     else:
         new_movie = Movie.objects.create(
             name=name,
