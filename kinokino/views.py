@@ -277,7 +277,7 @@ def completed_movie(request):
 def delete_status(request):
     movie = Movie.objects.get(id=request.POST['movie_id'])
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_status = MovieStatus.objects.get(movie=movie, user=user).delete()
+    MovieStatus.objects.get(movie=movie, user=user).delete()
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
