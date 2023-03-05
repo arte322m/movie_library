@@ -65,3 +65,10 @@ class MovieStatus(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, default=None)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, default=None)
     status = models.CharField(max_length=16, choices=MOVIE_STATUS, default=None)
+
+
+class Collection(models.Model):
+    name = models.CharField(max_length=50, default=None)
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    movie = models.ManyToManyField(Movie)
+
