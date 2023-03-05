@@ -204,7 +204,7 @@ def all_movies(request):
 def all_seasons(request, movie_id):
     movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
-    season_info = movie.season_set.all()
+    season_info = movie.season_set.order_by('number').all()
     statuses = MovieStatus.MOVIE_STATUS
     context = {
         'movie_data': movie_data,
@@ -216,6 +216,9 @@ def all_seasons(request, movie_id):
         user = UserProfile.objects.get(user_id=request.user.id)
         favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
         context['favorite_movie_list'] = favorite_movie_list
+        if MovieStatus.objects.filter(user=user, movie=movie):
+            movie_status = MovieStatus.objects.get(user=user, movie=movie)
+            context['movie_status'] = movie_status
     return render(request, 'kinokino/all_seasons.html', context)
 
 
@@ -242,6 +245,39 @@ def all_episodes(request, movie_id, season_id):
 @login_required
 @require_POST
 def add_status(request):
+    movie = Movie.objects.get(id=request.POST['movie_id'])
+    user = UserProfile.objects.get(user_id=request.user.id)
+    statuses = {
+        'Смотрю': MovieStatus.WATCHING,
+        'Запланировано': MovieStatus.PLANNED_TO_WATCH,
+        'Просмотрено': MovieStatus.COMPLETED,
+    }
+    status = statuses[request.POST['status']]
+    if not MovieStatus.objects.filter(movie=movie, user=user):
+        MovieStatus.objects.create(movie=movie, user=user, status=status)
+    else:
+        new_status = MovieStatus.objects.get(movie=movie, user=user)
+        new_status.status = status
+        new_status.save()
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+@login_required
+def completed_movie(request):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_list = user.moviestatus_set.filter(status='Просмотрено')
+    context = {
+        'movie_list': movie_list,
+    }
+    return render(request, 'kinokino/completed_movie.html', context)
+
+
+@login_required
+@require_POST
+def delete_status(request):
+    movie = Movie.objects.get(id=request.POST['movie_id'])
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_status = MovieStatus.objects.get(movie=movie, user=user).delete()
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 

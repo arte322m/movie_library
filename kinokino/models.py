@@ -36,7 +36,6 @@ class Movie(models.Model):
     release_year_start = models.IntegerField(null=True)
     release_year_end = models.IntegerField(null=True)
     episodes_count = models.IntegerField(null=True)
-    episodes_complete = models.IntegerField(max_length=episodes_count, null=True, default=0)
     favorite = models.ManyToManyField(UserProfile)
 
 
@@ -54,15 +53,15 @@ class Episode(models.Model):
 
 
 class MovieStatus(models.Model):
-    NONE = 'Не смотрю'
-    PLANNED_TO_WATCH = 'Хочу посмотреть'
+    NONE = '------'
+    PLANNED_TO_WATCH = 'Запланировано'
     WATCHING = 'Смотрю'
     COMPLETED = 'Просмотрено'
     MOVIE_STATUS = [
-        (PLANNED_TO_WATCH, 'хочу посмотреть'),
+        (PLANNED_TO_WATCH, 'запланировано'),
         (WATCHING, 'смотрю'),
         (COMPLETED, 'просмотрено'),
     ]
-    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
-    status = models.CharField(max_length=16, choices=MOVIE_STATUS, default=NONE)
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, default=None)
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, default=None)
+    status = models.CharField(max_length=16, choices=MOVIE_STATUS, default=None)

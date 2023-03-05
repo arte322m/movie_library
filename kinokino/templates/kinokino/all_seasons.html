@@ -1,7 +1,6 @@
 {% extends 'kinokino/all_movies.html' %}
 
 {% block season %}
-
     {% if not movie.release_year_start %}
         <div class="row">
             <div class="col">
@@ -22,14 +21,36 @@
                 </div>
 
                 <div class="row">
-                    <form method="post">
+                    {% if movie_status %}
+                    <form action="{% url 'kinokino:add_status' %}" method="post">
                     {% csrf_token %}
+                        <input name="movie_id" value="{{ movie.id }}" hidden>
                         <select name="status">
                             {% for status in statuses %}
-                                <option>{{ status|first }}</option>
+                                <option {% if status|first == movie_status.status %}
+                                          selected
+                                        {% endif %}
+                                        value="{{ status|first }}" name="'status">
+                                    {{ status|first }}
+                                </option>
                             {% endfor %}
                         </select>
+                        <button class="btn btn-new" type="submit">Сохранить</button>
                     </form>
+
+                    <form action="{% url 'kinokino:delete_status' %}" method="post">
+                    {% csrf_token %}
+                        <input name="movie_id" value="{{ movie.id }}" hidden>
+                        <button type="submit" class="btn btn-danger">Удалить</button>
+                    </form>
+                    {% else %}
+                        <form action="{% url 'kinokino:add_status' %}" method="post">
+                        {% csrf_token %}
+                            <input name="status" value="Запланировано" hidden>
+                            <input name="movie_id" value="{{ movie.id }}" hidden>
+                            <button class="btn btn-new" type="submit">Добавить в список</button>
+                        </form>
+                    {% endif %}
                 </div>
             </div>
             <div class="col">
@@ -39,10 +60,6 @@
 
         <div class="row">
             Всего серий: {{ movie.episodes_count }}
-        </div>
-
-        <div class="row">
-            Просмотрено: {{ movie.episodes_complete }}/{{ movie.episodes_count }}
         </div>
 
         <div class="row">
