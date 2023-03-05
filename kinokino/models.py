@@ -71,4 +71,3 @@ class Collection(models.Model):
     name = models.CharField(max_length=50, default=None)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     movie = models.ManyToManyField(Movie)
-

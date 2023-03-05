@@ -21,7 +21,8 @@ urlpatterns = [
     path('movies/completed_movie', views.completed_movie, name='completed_movie'),
     path('collection', views.collections, name='collections'),
     path('collection/change_collection/<int:collection_id>', views.change_collection, name='change_collection'),
-    path('collection/change_collection/add_movie_in_collection', views.add_movie_in_collection, name='add_movie_in_collection'),
+    path('collection/change_collection/add_movie_in_collection', views.add_movie_in_collection,
+         name='add_movie_in_collection'),
     path('collection/<int:collection_id>', views.collection_detail, name='collection_detail'),
     path('collection/create_collection', views.create_collection, name='create_collection'),
 ]
