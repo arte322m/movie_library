@@ -1,85 +1,152 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <link rel="stylesheet" type="text/css" href="{% static 'kinokino/css/bootstrap.min.css' %}">
-    {% if request.session.theme == 'LIGHT' %}
-        <link rel="stylesheet" type="text/css" href="{% static 'kinokino/css/light_theme.css' %}">
-    {% else %}
-        <link rel="stylesheet" type="text/css" href="{% static 'kinokino/css/dark_theme.css' %}">
-    {% endif %}
+    <head>
+        <link rel="stylesheet" type="text/css" href="{% static 'kinokino/css/bootstrap.min.css' %}">
+        {% if request.session.theme == 'LIGHT' %}
+            <link rel="stylesheet" type="text/css" href="{% static 'kinokino/css/light_theme.css' %}">
+        {% else %}
+            <link rel="stylesheet" type="text/css" href="{% static 'kinokino/css/dark_theme.css' %}">
+        {% endif %}
 
-    <meta charset="UTF-8">
-    <title>{% block title %}Title{% endblock %}</title>
-</head>
-<body>
+        <meta charset="UTF-8">
+        <title>{% block title %}Title{% endblock %}</title>
+    </head>
+    <body>
 
-    <div class="wrapper">
+        <div class="wrapper">
 
-        <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+            <header class="d-flex sticky-sm-top sticky-lg-bottom flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
 
-            <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+                <div class="nav col-sm-8 justify-content-center">
+                    <div class="col mx-2">
+                        <form action="{% url 'kinokino:searching' %}" class="d-flex px-1" role="search" method="post">
+                            {% csrf_token %}
+                            <input id="Search" class="form-control text-bg me-sm-2" type="search" placeholder="Поиск фильма или сериала" aria-label="Search" value="{{ name }}" name="search_text" required>
+                            <button class="btn btn-primary" type="submit">Поиск</button>
+                        </form>
+                    </div>
 
-                <a href="/" class="nav-link px-2">Главная</a>
-
-                <a href="{% url 'kinokino:all_movies' %}" class="nav-link px-2">Фильмы и сериалы</a>
-
-                <a href="{% url 'kinokino:favorite' %}" class="nav-link px-2">Избранное</a>
-
-                <a href="{% url 'kinokino:completed_movie' %}" class="nav-link px-2">Просмотрено</a>
-
-                <a href="{% url 'kinokino:collections' %}" class="nav-link px-2">Коллекции</a>
-
-                <li>
-                    <form action="{% url 'kinokino:switch_theme' %}" method="post">
-                        {% csrf_token %}
-                        <button class="btn btn-outline" type="submit">Смена темы</button>
-                    </form>
-                </li>
-
-                <li>
-                    <form action="{% url 'kinokino:searching' %}" class="d-flex px-2" role="search" method="post">
-                        {% csrf_token %}
-                        <input id="Search" class="form-control form-control text-bg me-2" type="search" placeholder="Название" aria-label="Search" value="{{ name }}" name="search_text" required>
-                        <button class="btn btn-primary" type="submit">Поиск</button>
-                    </form>
-                </li>
-
-            </ul>
-
-            {% if user.is_authenticated %}
-                <div class="col-md-3 text-end">
-                    <strong>{{ user.username }}</strong>
-                    <a href="{% url 'kinokino:logout' %}">
-                        <button type="button" class="btn btn-danger ms-2 me-2">Выйти</button>
-                    </a>
                 </div>
 
-            {% else %}
-                <div class="col-md-3 text-end">
-                    <a href="{% url 'kinokino:login' %}">
-                        <button type="button" class="btn btn-outline me-2">Войти</button>
-                    </a>
-                    <a href="{% url 'kinokino:registration' %}">
-                        <button type="button" class="btn btn-warning me-2">Регистрация</button>
-                    </a>
+                {% if user.is_authenticated %}
+                    <div class="col-sm-2 text-end">
+                        <strong>{{ user.username }}</strong>
+                        <a href="{% url 'kinokino:logout' %}">
+                            <button type="button" class="btn btn-danger ms-2 me-2">Выйти</button>
+                        </a>
+                    </div>
+
+                {% else %}
+                    <div class="col-sm-3 text-end">
+                        <a href="{% url 'kinokino:login' %}">
+                            <button type="button" class="btn btn-outline me-2">Войти</button>
+                        </a>
+                        <a href="{% url 'kinokino:registration' %}">
+                            <button type="button" class="btn btn-warning me-2">Регистрация</button>
+                        </a>
+                    </div>
+                {% endif %}
+
+            </header>
+
+            <div class="main">
+                <div class="container-fluid">
+                    {% block content%}
+
+                    {% endblock %}
                 </div>
-            {% endif %}
-
-        </header>
-
-        <div class="main">
-            <div class="container-fluid">
-                {% block content%}
-
-                {% endblock %}
             </div>
+
+            <div class="row fixed-bottom text-center justify-content-center border-top">
+                <div class="nav col-sm-10 col-sm-auto mb-2 justify-content-center mb-sm-0">
+
+                    <div class="col">
+                        <div class="col">
+                            <div class="row">
+                                <a href="/" class="nav-link px-sm-4">
+                                    <img height="25" width="25"
+                                        {% if request.session.theme == 'LIGHT' %}
+                                            src="{% static 'kinokino/images/home_light_theme.png' %}"
+                                        {% else %}
+                                            src="{% static 'kinokino/images/home_dark_theme.png' %}"
+                                        {% endif %}
+                                    >
+                                </a>
+                            </div>
+                            <div class="row justify-content-center">
+                                Домой
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="col">
+                        <div class="col">
+                            <div class="row">
+                                <a href="{% url 'kinokino:all_movies' %}" class="nav-link align-content-center px-sm-4">
+                                    <img width="25" height="25"
+                                    {% if request.session.theme == 'LIGHT' %}
+                                        src="{% static 'kinokino/images/compass_light_theme.png' %}"
+                                    {% else %}
+                                        src="{% static 'kinokino/images/compass_dark_theme.png' %}"
+                                    {% endif %}
+                                    >
+                                </a>
+                            </div>
+
+                            <div class="row justify-content-center">
+                                Обзор
+                            </div>
+                        </div>
+                    </div>
+
+                {% if user.is_authenticated %}
+
+                    <div class="col">
+                        <div class="col">
+                            <div class="row">
+                                <a href="{% url 'kinokino:bookmarks' %}" class="nav-link align-content-center px-sm-4">
+                                    <img width="25" height="25"
+                                        {% if request.session.theme == 'LIGHT' %}
+                                            src="{% static 'kinokino/images/bookmarks_light_theme.png' %}"
+                                        {% else %}
+                                            src="{% static 'kinokino/images/bookmarks_dark_theme.png' %}"
+                                        {% endif %}
+                                    >
+                                </a>
+                            </div>
+
+                            <div class="row justify-content-center">
+                                Закладки
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <div class="col">
+                            <div class="row">
+                                <a href="{% url 'kinokino:collections' %}" class="nav-link align-content-center px-sm-4">
+                                    <img width="25" height="25"
+                                        {% if request.session.theme == 'LIGHT' %}
+                                            src="{% static 'kinokino/images/collection_light_theme.png' %}"
+                                        {% else %}
+                                            src="{% static 'kinokino/images/collection_dark_theme.png' %}"
+                                        {% endif %}
+                                    >
+                                </a>
+                            </div>
+
+                            <div class="row justify-content-center">
+                                Коллекции
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                </div>
+          </div>
+
         </div>
-
-        <footer class="d-flex flex-wrap justify-content-between align-items-center py-4 py-md-5 mt-5 border-top">
-            <div class="col text-center">типа футер</div>
-        </footer>
-
-    </div>
-</body>
+    </body>
 </html>

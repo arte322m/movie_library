@@ -189,6 +189,41 @@ def favorite_movie(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
+@login_required
+def bookmarks(request):
+    return render(request, 'kinokino/bookmarks.html')
+
+
+@login_required
+def bookmarks_watching(request):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_list = user.moviestatus_set.filter(status='Смотрю')
+    context = {
+        'movie_list': movie_list,
+    }
+    return render(request, 'kinokino/bookmarks_watching.html', context)
+
+
+@login_required
+def bookmarks_planned_to_watch(request):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_list = user.moviestatus_set.filter(status='Запланировано')
+    context = {
+        'movie_list': movie_list,
+    }
+    return render(request, 'kinokino/bookmarks_planned_to_watch.html', context)
+
+
+@login_required
+def bookmarks_completed(request):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_list = user.moviestatus_set.filter(status='Просмотрено')
+    context = {
+        'movie_list': movie_list,
+    }
+    return render(request, 'kinokino/completed_bookmarks.html', context)
+
+
 def all_movies(request):
     movie_data = Movie.objects.all()
     context = {
@@ -225,7 +260,7 @@ def all_seasons(request, movie_id):
 def all_episodes(request, movie_id, season_id):
     movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
-    season_info = movie.season_set.all()
+    season_info = movie.season_set.order_by('number').all()
     episodes = season_info.get(number=season_id).episode_set.all().order_by('number')
     statuses = MovieStatus.MOVIE_STATUS
     context = {
@@ -260,16 +295,6 @@ def add_status(request):
         new_status.status = status
         new_status.save()
     return redirect(request.META.get('HTTP_REFERER', '/'))
-
-
-@login_required
-def completed_movie(request):
-    user = UserProfile.objects.get(user_id=request.user.id)
-    movie_list = user.moviestatus_set.filter(status='Просмотрено')
-    context = {
-        'movie_list': movie_list,
-    }
-    return render(request, 'kinokino/completed_movie.html', context)
 
 
 @login_required

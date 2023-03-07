@@ -1,0 +1,16 @@
+{% extends 'kinokino/bookmarks.html' %}
+{% load static %}
+
+{% block bookmarks_content %}
+
+        <ul>
+            {% for movie in movie_list %}
+                <div class="row">
+                    <li>
+                        {{ movie.movie.name }}
+                    </li>
+                </div>
+            {% endfor %}
+        </ul>
+
+{% endblock %}
