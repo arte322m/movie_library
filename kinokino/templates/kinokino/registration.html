@@ -1,5 +1,7 @@
 {% extends "kinokino/base.html" %}
 
+{% block title %}Регистрация{% endblock %}
+
 {% block content %}
     <div class="col text-center justify-content-center">
     <div class="row text-center">
@@ -32,6 +34,9 @@
             <input class="btn btn-primary" type="submit" value="Зарегистрироваться"></p>
 
         </form>
+        <div class="row justify-content-center">
+            У меня есть аккаунт!<a href="{% url 'kinokino:login' %}">Войти</a>
+        </div>
     </div>
 
 {% endblock %}

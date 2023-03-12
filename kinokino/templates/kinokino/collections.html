@@ -1,15 +1,23 @@
 {% extends 'kinokino/base.html' %}
 
 {% block title %}
-
+    Коллекции
 {% endblock %}
 
 {% block content %}
+
     <div class="col">
+
         <div class="row">
             <a href="{% url 'kinokino:create_collection' %}">
                 <button class="btn btn-primary">Создать коллекцию</button>
             </a>
+        </div>
+
+        <div class="row">
+            <h2>
+                Мои коллекции:
+            </h2>
         </div>
 
         <ul>

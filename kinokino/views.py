@@ -12,6 +12,11 @@ from kinokino.kinopoisk_api_search import search_function
 from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection
 
 
+@login_required(login_url='/accounts/login')
+def main(request):
+    return render(request, 'kinokino/main.html')
+
+
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['login']
@@ -369,3 +374,6 @@ def add_movie_in_collection(request):
         collection.movie.add(movie_details)
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
+
+def profile(request):
+    return render(request, 'kinokino/profile.html')

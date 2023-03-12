@@ -10,51 +10,39 @@
             <link rel="stylesheet" type="text/css" href="{% static 'kinokino/css/dark_theme.css' %}">
         {% endif %}
         <meta charset="UTF-8">
-        <title>{% block title %}Title{% endblock %}</title>
+        <title>{% block title %}{% endblock %}</title>
     </head>
     <body>
 
         <div class="wrapper">
 
             <header class="d-flex sticky-sm-top sticky-lg-bottom flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+                {% if user.is_authenticated %}
+                    <div class="nav col-sm-8 justify-content-center">
+                        <div class="col mx-2">
+                            <form action="{% url 'kinokino:searching' %}" class="d-flex px-1" role="search" method="post">
+                                {% csrf_token %}
+                                <input id="Search" class="form-control text-bg me-sm-2" type="search" placeholder="Поиск фильма или сериала" aria-label="Search" value="{{ name }}" name="search_text" required>
+                                <button class="btn btn-primary" type="submit">Поиск</button>
+                            </form>
+                        </div>
 
-                <div class="nav col-sm-8 justify-content-center">
-                    <div class="col mx-2">
-                        <form action="{% url 'kinokino:searching' %}" class="d-flex px-1" role="search" method="post">
-                            {% csrf_token %}
-                            <input id="Search" class="form-control text-bg me-sm-2" type="search" placeholder="Поиск фильма или сериала" aria-label="Search" value="{{ name }}" name="search_text" required>
-                            <button class="btn btn-primary" type="submit">Поиск</button>
-                        </form>
                     </div>
 
-                </div>
+                    <form method="post" action="{% url 'kinokino:switch_theme' %}">
+                        {% csrf_token %}
+                        <button class="btn btn" type="submit">
+                            <img src="{% static 'kinokino/images/change_theme.png' %}" height="25">
+                        </button>
+                    </form>
 
-            <form method="post" action="{% url 'kinokino:switch_theme' %}">
-                {% csrf_token %}
-                <button class="btn btn" type="submit">
-                    <img src="{% static 'kinokino/images/change_theme.png' %}" height="25">
-                </button>
-            </form>
-
-                {% if user.is_authenticated %}
                     <div class="col-sm-2 text-end">
                         <strong>{{ user.username }}</strong>
                         <a href="{% url 'kinokino:logout' %}">
                             <button type="button" class="btn btn-danger ms-2 me-2">Выйти</button>
                         </a>
                     </div>
-
-                {% else %}
-                    <div class="col-sm-3 text-end">
-                        <a href="{% url 'kinokino:login' %}">
-                            <button type="button" class="btn btn-outline me-2">Войти</button>
-                        </a>
-                        <a href="{% url 'kinokino:registration' %}">
-                            <button type="button" class="btn btn-warning me-2">Регистрация</button>
-                        </a>
-                    </div>
                 {% endif %}
-
             </header>
 
             <div class="main">
@@ -66,7 +54,8 @@
             </div>
 
             <div class="row fixed-bottom text-center justify-content-center border-top">
-                <div class="nav col-sm-10 col-sm-auto mb-2 justify-content-center mb-sm-0">
+                {% if user.is_authenticated %}
+                    <div class="nav col-sm-10 col-sm-auto mb-2 justify-content-center mb-sm-0">
 
                     <div class="col">
                         <div class="col">
@@ -87,7 +76,6 @@
                         </div>
                     </div>
 
-                {% if user.is_authenticated %}
 
                     <div class="col">
                         <div class="col">
@@ -128,10 +116,30 @@
                             </div>
                         </div>
                     </div>
-                {% endif %}
+
+                    <div class="col">
+                        <div class="col">
+                            <div class="row">
+                                <a href="{% url 'kinokino:profile' %}" class="nav-link align-content-center px-sm-4">
+                                    <img width="25" height="25"
+                                        {% if request.session.theme == 'LIGHT' %}
+                                            src="{% static 'kinokino/images/profile_light_theme.png' %}"
+                                        {% else %}
+                                            src="{% static 'kinokino/images/profile_dark_theme.png' %}"
+                                        {% endif %}
+                                    >
+                                </a>
+                            </div>
+
+                            <div class="row justify-content-center">
+                                Профиль
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
-          </div>
+                {% endif %}
+            </div>
 
         </div>
     </body>
