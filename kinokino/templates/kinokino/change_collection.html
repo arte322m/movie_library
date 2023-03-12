@@ -5,19 +5,19 @@
 {% block content %}
     <div class="col">
         <ul>
-            {% for favorite_movie in favorite_movies %}
+            {% for movie in user_movies %}
                 <div class="row">
                     <li>
                         <div class="col">
-                            {{ favorite_movie.name }}
+                            {{ movie.name }}
                         </div>
 
                         <div class="col">
                             <form action="{% url 'kinokino:add_movie_in_collection' %}" method="post">
                             {% csrf_token %}
-                                <input name="movie_id" value="{{ favorite_movie.id }}" hidden>
+                                <input name="movie_id" value="{{ movie.id }}" hidden>
                                 <input name="collection_id" value="{{ collection_id }}" hidden>
-                                {% if favorite_movie not in movies_in_collection %}
+                                {% if movie not in movies_in_collection %}
                                     <button class="btn btn-new" type="submit" value="add" name="fav">
                                         Добавить в коллекцию
                                     </button>

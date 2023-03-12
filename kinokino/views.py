@@ -207,7 +207,7 @@ def bookmarks(request):
 @login_required(login_url='/accounts/login')
 def bookmarks_watching(request):
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_list = user.moviestatus_set.filter(status='Смотрю')
+    movie_list = user.movie_set.filter(status='Смотрю')
     context = {
         'movie_list': movie_list,
     }
@@ -217,7 +217,7 @@ def bookmarks_watching(request):
 @login_required(login_url='/accounts/login')
 def bookmarks_planned_to_watch(request):
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_list = user.moviestatus_set.filter(status='Запланировано')
+    movie_list = user.movie_set.filter(status='Запланировано')
     context = {
         'movie_list': movie_list,
     }
@@ -227,7 +227,7 @@ def bookmarks_planned_to_watch(request):
 @login_required(login_url='/accounts/login')
 def bookmarks_completed(request):
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_list = user.moviestatus_set.filter(status='Просмотрено')
+    movie_list = user.movie_set.filter(status='Просмотрено')
     context = {
         'movie_list': movie_list,
     }
@@ -236,14 +236,13 @@ def bookmarks_completed(request):
 
 @login_required(login_url='/accounts/login')
 def all_movies(request):
-    movie_data = Movie.objects.all()
+    user = UserProfile.objects.get(user_id=request.user.id)
+    favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
+    movie_data = user.movie_set.all()
     context = {
         'movie_data': movie_data,
+        'favorite_movie_list': favorite_movie_list,
     }
-    if request.user.is_authenticated:
-        user = UserProfile.objects.get(user_id=request.user.id)
-        favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
-        context['favorite_movie_list'] = favorite_movie_list
     return render(request, 'kinokino/all_movies.html', context)
 
 
@@ -351,11 +350,11 @@ def collection_detail(request, collection_id):
 @login_required(login_url='/accounts/login')
 def change_collection(request, collection_id):
     user = UserProfile.objects.get(user_id=request.user.id)
-    favorite_movies = user.movie_set.all()
+    user_movies = user.movie_set.all()
     collection = Collection.objects.get(id=collection_id)
     movies_in_collection = collection.movie.all()
     context = {
-        'favorite_movies': favorite_movies,
+        'user_movies': user_movies,
         'movies_in_collection': movies_in_collection,
         'collection_id': collection_id,
     }
@@ -375,5 +374,11 @@ def add_movie_in_collection(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
+@login_required(login_url='/accounts/login')
 def profile(request):
     return render(request, 'kinokino/profile.html')
+
+
+@login_required(login_url='/accounts/login')
+def movie_detail(request):
+    pass
