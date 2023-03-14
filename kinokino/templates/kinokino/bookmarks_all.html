@@ -15,7 +15,7 @@
 
                                 <div class="col">
                                     {% if user.is_authenticated %}
-                                        <form action="{% url 'kinokino:favorite_movie' %}" method="post">
+                                        <form action="{% url 'kinokino:add_movie_to_favorite' %}" method="post">
                                         {% csrf_token %}
                                             <input name="movie_id" value="{{ movie_info.movie.kinopoisk_id }}" hidden>
                                             {% if movie_info.movie.kinopoisk_id not in favorite_movie_list %}

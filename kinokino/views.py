@@ -181,18 +181,18 @@ def add_movie(request):
 
 
 @login_required(login_url='/accounts/login')
-def favorite(request):
+def bookmarks_favorite(request):
     user_info = UserProfile.objects.get(user_id=request.user.id)
     favorite_movies = user_info.movie_set.all()
     context = {
         'favorite_movies': favorite_movies,
     }
-    return render(request, 'kinokino/favorite.html', context)
+    return render(request, 'kinokino/bookmarks_favorite.html', context)
 
 
 @require_POST
 @login_required(login_url='/accounts/login')
-def favorite_movie(request):
+def add_movie_to_favorite(request):
     user_info = UserProfile.objects.get(user_id=request.user.id)
     movie_details = Movie.objects.get(kinopoisk_id=request.POST['movie_id'])
 
@@ -239,7 +239,7 @@ def bookmarks_completed(request):
 
 
 @login_required(login_url='/accounts/login')
-def all_movies(request):
+def bookmarks_all(request):
     user = UserProfile.objects.get(user_id=request.user.id)
     favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
     movie_data = user.moviestatus_set.all()
@@ -247,7 +247,7 @@ def all_movies(request):
         'movie_data': movie_data,
         'favorite_movie_list': favorite_movie_list,
     }
-    return render(request, 'kinokino/all_movies.html', context)
+    return render(request, 'kinokino/bookmarks_all.html', context)
 
 
 @login_required(login_url='/accounts/login')
