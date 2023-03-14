@@ -3,7 +3,6 @@
 {% block title %}Закладки{% endblock %}
 
 {% block content %}
-
     <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0 bg">
 
         <a href="{% url 'kinokino:all_movies' %}" class="nav-link px-2">Все</a>
@@ -18,10 +17,9 @@
 
     </ul>
 
-    <div class="col-sm">
+    <div class="col">
         {% block bookmarks_content %}
 
         {% endblock %}
     </div>
-
 {% endblock %}

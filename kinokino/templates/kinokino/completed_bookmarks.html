@@ -4,15 +4,15 @@
 {% block title %}Просмотренное{% endblock %}
 
 {% block bookmarks_content %}
-
-        <ul>
+    {% if movie_list %}
+        <ol>
             {% for movie in movie_list %}
-                <div class="row">
-                    <li>
-                        {{ movie.name }}
-                    </li>
-                </div>
+                <li>
+                    {{ movie }}
+                </li>
             {% endfor %}
-        </ul>
-
+        </ol>
+    {% else %}
+        Пусто
+    {% endif %}
 {% endblock %}

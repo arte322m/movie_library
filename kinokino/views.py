@@ -91,6 +91,7 @@ def searching(request):
 
 @login_required(login_url='/accounts/login')
 def search(request, search_text):
+    user = UserProfile.objects.get(user_id=request.user.id)
     movie_data = Movie.objects.values_list('kinopoisk_id', flat=True)
     context = {
         'movie_data': movie_data,
@@ -112,10 +113,13 @@ def search(request, search_text):
 @require_POST
 @login_required(login_url='/accounts/login')
 def add_movie(request):
-    name = request.POST['movie_name']
     kinopoisk_id = int(request.POST['movie_id'])
+    if Movie.objects.filter(kinopoisk_id=kinopoisk_id):
+        pass
+    name = request.POST['movie_name']
     year = int(request.POST['movie_year'])
     movie_type = request.POST['movie_type']
+    preview_url = request.POST['preview_url']
     if request.POST['release_years']:
         all_episode_count = 0
         seasons = []
@@ -127,6 +131,7 @@ def add_movie(request):
             kinopoisk_id=kinopoisk_id,
             year=year,
             seasons_count=len(search_result),
+            preview_url=preview_url,
         )
         new_movie.type = movie_type
         if release_year_start != 'None':
@@ -207,7 +212,7 @@ def bookmarks(request):
 @login_required(login_url='/accounts/login')
 def bookmarks_watching(request):
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_list = user.movie_set.filter(status='Смотрю')
+    movie_list = user.moviestatus_set.filter(status='Смотрю').values_list('movie__name', flat=True)
     context = {
         'movie_list': movie_list,
     }
@@ -217,7 +222,7 @@ def bookmarks_watching(request):
 @login_required(login_url='/accounts/login')
 def bookmarks_planned_to_watch(request):
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_list = user.movie_set.filter(status='Запланировано')
+    movie_list = user.moviestatus_set.filter(status='Запланировано').values_list('movie__name', flat=True)
     context = {
         'movie_list': movie_list,
     }
@@ -226,11 +231,10 @@ def bookmarks_planned_to_watch(request):
 
 @login_required(login_url='/accounts/login')
 def bookmarks_completed(request):
+    context = {}
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_list = user.movie_set.filter(status='Просмотрено')
-    context = {
-        'movie_list': movie_list,
-    }
+    movie_list = user.moviestatus_set.filter(status='Просмотрено').values_list('movie__name', flat=True)
+    context['movie_list'] = movie_list
     return render(request, 'kinokino/completed_bookmarks.html', context)
 
 
@@ -238,7 +242,7 @@ def bookmarks_completed(request):
 def all_movies(request):
     user = UserProfile.objects.get(user_id=request.user.id)
     favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
-    movie_data = user.movie_set.all()
+    movie_data = user.moviestatus_set.all()
     context = {
         'movie_data': movie_data,
         'favorite_movie_list': favorite_movie_list,

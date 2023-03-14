@@ -6,19 +6,19 @@
         <div class="col">
             <ol>
                 {% for movie_info in movie_data %}
-                    <div class="row">
-                        <li>
+                    <li>
+                        <div class="row">
                             <div class="row">
                                 <div class="col">
-                                    <a href="{% url 'kinokino:all_seasons' movie_info.kinopoisk_id %}">{{ movie_info.name }}</a>
+                                    <a href="{% url 'kinokino:all_seasons' movie_info.movie.kinopoisk_id %}">{{ movie_info.movie.name }} {{ movie_info.movie.kinopoisk_id }}</a>
                                 </div>
 
                                 <div class="col">
                                     {% if user.is_authenticated %}
                                         <form action="{% url 'kinokino:favorite_movie' %}" method="post">
                                         {% csrf_token %}
-                                            <input name="movie_id" value="{{ movie_info.kinopoisk_id }}" hidden>
-                                            {% if movie_info.kinopoisk_id not in favorite_movie_list %}
+                                            <input name="movie_id" value="{{ movie_info.movie.kinopoisk_id }}" hidden>
+                                            {% if movie_info.movie.kinopoisk_id not in favorite_movie_list %}
                                                 <button class="btn btn-new" type="submit" value="add" name="fav">
                                                     Добавить в избранное
                                                 </button>
@@ -31,8 +31,8 @@
                                     {% endif %}
                                 </div>
                             </div>
-                        </li>
-                    </div>
+                        </div>
+                    </li>
                 {% endfor %}
             </ol>
         </div>
