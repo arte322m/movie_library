@@ -70,7 +70,7 @@
     <ul>
         {% for season in season_info %}
             <li>
-                <a href="{% url 'kinokino:all_episodes' season.movie_id.kinopoisk_id season.number %}">{{ season.number }} ({{ season.episodes_count }})</a>
+                <a href="{% url 'kinokino:detail_season' season.movie_id.kinopoisk_id season.number %}">{{ season.number }} ({{ season.episodes_count }})</a>
             </li>
         {% endfor %}
     </ul>

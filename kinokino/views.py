@@ -251,7 +251,7 @@ def all_movies(request):
 
 
 @login_required(login_url='/accounts/login')
-def all_seasons(request, movie_id):
+def detail_movie(request, movie_id):
     movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
     season_info = movie.season_set.order_by('number').all()
@@ -269,11 +269,11 @@ def all_seasons(request, movie_id):
         if MovieStatus.objects.filter(user=user, movie=movie):
             movie_status = MovieStatus.objects.get(user=user, movie=movie)
             context['movie_status'] = movie_status
-    return render(request, 'kinokino/all_seasons.html', context)
+    return render(request, 'kinokino/detail_movie.html', context)
 
 
 @login_required(login_url='/accounts/login')
-def all_episodes(request, movie_id, season_id):
+def detail_season(request, movie_id, season_id):
     movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
     season_info = movie.season_set.order_by('number').all()
@@ -290,7 +290,7 @@ def all_episodes(request, movie_id, season_id):
         user = UserProfile.objects.get(user_id=request.user.id)
         favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
         context['favorite_movie_list'] = favorite_movie_list
-    return render(request, 'kinokino/all_episodes.html', context)
+    return render(request, 'kinokino/detail_season.html', context)
 
 
 @require_POST
@@ -381,8 +381,3 @@ def add_movie_in_collection(request):
 @login_required(login_url='/accounts/login')
 def profile(request):
     return render(request, 'kinokino/profile.html')
-
-
-@login_required(login_url='/accounts/login')
-def movie_detail(request):
-    pass
