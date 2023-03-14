@@ -25,8 +25,8 @@ def login_view(request):
         if user is not None:
             login(request, user)
             profile_id = User.objects.get(username=username).id
-            profile = UserProfile.objects.filter(user_id=profile_id)
-            if not profile:
+            u_profile = UserProfile.objects.filter(user_id=profile_id)
+            if not u_profile:
                 UserProfile(user_id=profile_id).save()
             if UserProfile.objects.get(user_id=profile_id).type_of_theme == UserProfile.DARK:
                 request.session['theme'] = UserProfile.DARK
@@ -180,16 +180,6 @@ def add_movie(request):
     return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
-@login_required(login_url='/accounts/login')
-def bookmarks_favorite(request):
-    user_info = UserProfile.objects.get(user_id=request.user.id)
-    favorite_movies = user_info.movie_set.all()
-    context = {
-        'favorite_movies': favorite_movies,
-    }
-    return render(request, 'kinokino/bookmarks_favorite.html', context)
-
-
 @require_POST
 @login_required(login_url='/accounts/login')
 def add_movie_to_favorite(request):
@@ -207,6 +197,16 @@ def add_movie_to_favorite(request):
 @login_required(login_url='/accounts/login')
 def bookmarks(request):
     return render(request, 'kinokino/bookmarks.html')
+
+
+@login_required(login_url='/accounts/login')
+def bookmarks_favorite(request):
+    user_info = UserProfile.objects.get(user_id=request.user.id)
+    favorite_movies = user_info.movie_set.all()
+    context = {
+        'favorite_movies': favorite_movies,
+    }
+    return render(request, 'kinokino/bookmarks_favorite.html', context)
 
 
 @login_required(login_url='/accounts/login')
@@ -247,6 +247,7 @@ def bookmarks_all(request):
         'movie_data': movie_data,
         'favorite_movie_list': favorite_movie_list,
     }
+
     return render(request, 'kinokino/bookmarks_all.html', context)
 
 
