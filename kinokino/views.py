@@ -92,7 +92,7 @@ def searching(request):
 @login_required(login_url='/accounts/login')
 def search(request, search_text):
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_data = Movie.objects.values_list('kinopoisk_id', flat=True)
+    movie_data = user.moviestatus_set.values_list('movie__kinopoisk_id', flat=True)
     context = {
         'movie_data': movie_data,
         'name': search_text,
@@ -113,9 +113,12 @@ def search(request, search_text):
 @require_POST
 @login_required(login_url='/accounts/login')
 def add_movie(request):
+    user = UserProfile.objects.get(user_id=request.user.id)
     kinopoisk_id = int(request.POST['movie_id'])
     if Movie.objects.filter(kinopoisk_id=kinopoisk_id):
-        pass
+        movie = Movie.objects.get(kinopoisk_id=kinopoisk_id)
+        MovieStatus.objects.create(movie=movie, user=user, status=MovieStatus.PLANNED_TO_WATCH)
+        return redirect('kinokino:search', search_text=request.POST['search_text'])
     name = request.POST['movie_name']
     year = int(request.POST['movie_year'])
     movie_type = request.POST['movie_type']
@@ -177,6 +180,7 @@ def add_movie(request):
         )
         new_movie.type = movie_type
         new_movie.save()
+    MovieStatus.objects.create(movie=new_movie, user=user, status=MovieStatus.PLANNED_TO_WATCH)
     return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
