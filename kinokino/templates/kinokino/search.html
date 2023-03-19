@@ -14,7 +14,14 @@
                                 <img style="width: 150px; height: 225px" src="{{ film.poster.previewUrl }}">
                             </div>
                             <div class="row">
-                                {{ film.name }}({{ film.year }})
+                                {{ film.name }}
+                                {% if film.releaseYears %}
+                                    {% for years in film.releaseYears %}
+                                        ({{ years.start }} - {{ years.end }})
+                                    {% endfor %}
+                                {% else %}
+                                    ({{ film.year }})
+                                {% endif %}
                             </div>
                         </div>
                         {% if film.id not in movie_data %}

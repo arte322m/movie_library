@@ -1,9 +1,12 @@
 {% extends 'kinokino/base.html' %}
 
 {% block content %}
+    <img src="{{ movie.preview_url }}" height="250" width="145">
+
     {% if not movie.release_year_start %}
         <div class="row">
             <div class="col">
+
                 <div class="row">
                     {{ movie.name }}
                 </div>
@@ -41,7 +44,7 @@
                     <form action="{% url 'kinokino:delete_status' %}" method="post">
                     {% csrf_token %}
                         <input name="movie_id" value="{{ movie.id }}" hidden>
-                        <button type="submit" class="btn btn-danger">Удалить</button>
+                        <button type="submit" class="btn btn-danger">Удалить из списка</button>
                     </form>
                     {% else %}
                         <form action="{% url 'kinokino:add_status' %}" method="post">

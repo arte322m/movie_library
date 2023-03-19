@@ -385,4 +385,13 @@ def add_movie_in_collection(request):
 
 @login_required(login_url='/accounts/login')
 def profile(request):
-    return render(request, 'kinokino/profile.html')
+    user = UserProfile.objects.get(user_id=request.user.id)
+    planned_to_watch_count = user.moviestatus_set.filter(status=MovieStatus.PLANNED_TO_WATCH).count
+    complete_count = user.moviestatus_set.filter(status=MovieStatus.COMPLETED).count
+    watching_count = user.moviestatus_set.filter(status=MovieStatus.WATCHING).count
+    context = {
+        'watching_count': watching_count,
+        'complete_count': complete_count,
+        'planned_to_watch_count': planned_to_watch_count,
+    }
+    return render(request, 'kinokino/profile.html', context)

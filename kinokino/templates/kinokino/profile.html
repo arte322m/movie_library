@@ -4,6 +4,22 @@
 
 {% block content %}
 
-
+    <div class="col">
+        <div class="row">
+            Всего: {{ planned_to_watch_count|add:complete_count|add:watching_count }}
+        </div>
+        <div class="row">
+            Запланировано: {{ planned_to_watch_count }}
+        </div>
+        <div class="row">
+            Просмотрено: {{ complete_count }}
+        </div>
+        <div class="row">
+            Смотрю: {{ watching_count }}
+        </div>
+        <div class="row">
+            Мои коллекции:
+        </div>
+    </div>
 
 {% endblock %}
