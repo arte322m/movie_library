@@ -261,11 +261,19 @@ def detail_movie(request, movie_id):
     movie = Movie.objects.get(kinopoisk_id=movie_id)
     season_info = movie.season_set.order_by('number').all()
     statuses = MovieStatus.MOVIE_STATUS
+    completed = False
+    completed_episodes_count = 0
+    for season in movie.season_set.all():
+        completed_episodes_count += season.completedepisode_set.count()
+    if MovieStatus.objects.filter(movie=movie, status='Просмотрено'):
+        completed = True
     context = {
         'movie': movie,
+        'completed': completed,
         'statuses': statuses,
         'season_info': season_info,
         'favorite_movie_list': favorite_movie_list,
+        'completed_episodes_count': completed_episodes_count,
     }
     if MovieStatus.objects.filter(user=user, movie=movie):
         movie_status = MovieStatus.objects.get(user=user, movie=movie)
@@ -373,7 +381,6 @@ def change_collection(request, collection_id):
 def add_movie_in_collection(request):
     collection = Collection.objects.get(id=request.POST['collection_id'])
     movie_details = Movie.objects.get(id=request.POST['movie_id'])
-
     if request.POST['fav'] == 'rem':
         collection.movie.remove(movie_details)
     elif request.POST['fav'] == 'add':

@@ -69,6 +69,14 @@
         </div>
 
         <div class="row">
+            {% if completed %}
+                Просмотрено {{ movie.episodes_count  }} из {{ movie.episodes_count  }}
+            {% else%}
+                Просмотрено {{ completed_episodes_count }} из {{ movie.episodes_count  }}
+            {% endif %}
+        </div>
+
+        <div class="row">
             Сезонов: {{ movie.seasons_count }}
         </div>
     {% endif %}
