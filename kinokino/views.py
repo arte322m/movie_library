@@ -284,11 +284,10 @@ def detail_season(request, movie_id, season_id):
         if request.POST['add_or_rem'] == '+':
             episode = Episode.objects.get(id=request.POST['episode'])
             CompletedEpisode.objects.create(user=user, season=season_info, episode=episode)
-            return redirect(request.META.get('HTTP_REFERER', '/'))
         elif request.POST['add_or_rem'] == '-':
             episode = Episode.objects.get(id=request.POST['episode'])
             CompletedEpisode.objects.get(user=user, season=season_info, episode=episode).delete()
-            return redirect(request.META.get('HTTP_REFERER', '/'))
+        return redirect(request.META.get('HTTP_REFERER', '/'))
     context = {
         'season_episodes': season_episodes,
         'movie_id': movie_id,
