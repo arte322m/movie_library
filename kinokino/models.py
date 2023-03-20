@@ -44,6 +44,7 @@ class Season(models.Model):
     movie_id = models.ForeignKey(Movie, on_delete=models.CASCADE)
     number = models.IntegerField(default=None)
     episodes_count = models.IntegerField(default=None)
+    complete = models.ManyToManyField(UserProfile)
 
 
 class Episode(models.Model):
@@ -51,7 +52,6 @@ class Episode(models.Model):
     date = models.DateField(default=None)
     name = models.CharField(max_length=50, null=True)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, default=None)
-    complete = models.ManyToManyField(UserProfile)
 
 
 class MovieStatus(models.Model):
@@ -73,3 +73,9 @@ class Collection(models.Model):
     name = models.CharField(max_length=50, default=None)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     movie = models.ManyToManyField(Movie)
+
+
+class CompletedEpisode(models.Model):
+    episode = models.ForeignKey(Episode, on_delete=models.CASCADE)
+    season = models.ForeignKey(Season, on_delete=models.CASCADE)
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)

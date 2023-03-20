@@ -1,6 +1,9 @@
 {% extends 'kinokino/base.html' %}
 
 {% block content %}
+
+    <input type="button" onclick="history.back();" value="Назад"/>
+
     <img src="{{ movie.preview_url }}" height="250" width="145">
 
     {% if not movie.release_year_start %}
