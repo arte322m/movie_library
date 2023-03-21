@@ -6,7 +6,11 @@
             Вернуться
         </button>
     </a>
+    {% if not completed %}
     Просмотрено {{ user_complete_episodes.count }} из {{ season_episodes.count }}
+    {% else %}
+        Просмотрено {{ season_episodes.count }} из {{ season_episodes.count }}
+    {% endif %}
     <ul>
         {% for episode in season_episodes %}
             <li>

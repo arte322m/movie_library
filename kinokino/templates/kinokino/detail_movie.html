@@ -1,5 +1,5 @@
 {% extends 'kinokino/base.html' %}
-
+{% load static %}
 {% block content %}
 
     <input type="button" onclick="history.back();" value="Назад"/>
@@ -84,7 +84,18 @@
     <ul>
         {% for season in season_info %}
             <li>
-                <a href="{% url 'kinokino:detail_season' season.movie_id.kinopoisk_id season.number %}">{{ season.number }} ({{ season.episodes_count }})</a>
+                <div class="row">
+                    <div class="col-1">
+                        <a href="{% url 'kinokino:detail_season' season.movie_id.kinopoisk_id season.number %}">
+                            {{ season.number }} ({{ season.episodes_count }})
+                        </a>
+                    </div>
+                    {% if completed %}
+                        <div class="col">
+                            <img src="{% static 'kinokino/images/check_mark_green.png' %}" height="25" width="25">
+                        </div>
+                    {% endif %}
+                </div>
             </li>
         {% endfor %}
     </ul>

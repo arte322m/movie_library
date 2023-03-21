@@ -288,6 +288,9 @@ def detail_season(request, movie_id, season_id):
     season_episodes = season_info.episode_set.all().order_by('number')
     user = UserProfile.objects.get(user_id=request.user.id)
     user_complete_episodes = user.completedepisode_set.filter(season=season_info).values_list('episode_id', flat=True)
+    completed = False
+    if MovieStatus.objects.filter(movie=movie, status='Просмотрено'):
+        completed = True
     if request.method == 'POST':
         if request.POST['add_or_rem'] == '+':
             episode = Episode.objects.get(id=request.POST['episode'])
@@ -298,6 +301,7 @@ def detail_season(request, movie_id, season_id):
         return redirect(request.META.get('HTTP_REFERER', '/'))
     context = {
         'season_episodes': season_episodes,
+        'completed': completed,
         'movie_id': movie_id,
         'user_complete_episodes': user_complete_episodes,
     }
