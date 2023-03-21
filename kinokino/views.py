@@ -369,7 +369,7 @@ def collection_detail(request, collection_id):
 @login_required(login_url='/accounts/login')
 def change_collection(request, collection_id):
     user = UserProfile.objects.get(user_id=request.user.id)
-    user_movies = user.movie_set.all()
+    user_movies = user.moviestatus_set.all()
     collection = Collection.objects.get(id=collection_id)
     movies_in_collection = collection.movie.all()
     context = {
