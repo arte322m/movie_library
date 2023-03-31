@@ -411,7 +411,7 @@ def profile(request):
 
 
 @csrf_exempt
-def movie_list_api(request) -> JsonResponse or None:
+def movie_list_api(request):
     if request.method == 'GET':
         movies = Movie.objects.all()
         serializer = MovieSerializer(movies, many=True)
@@ -427,7 +427,7 @@ def movie_list_api(request) -> JsonResponse or None:
 
 
 @csrf_exempt
-def movie_detail_api(request, pk) -> JsonResponse or HttpResponse or None:
+def movie_detail_api(request, pk):
     try:
         movie = Movie.objects.get(pk=pk)
     except Movie.DoesNotExist:
@@ -451,7 +451,7 @@ def movie_detail_api(request, pk) -> JsonResponse or HttpResponse or None:
 
 
 @csrf_exempt
-def create_user_api(request) -> JsonResponse or None:
+def create_user_api(request):
     if request.method == 'POST':
         data = JSONParser().parse(request)
         serializer = UserSerializer(data=data)
