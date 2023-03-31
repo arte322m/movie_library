@@ -410,12 +410,8 @@ def profile(request):
     return render(request, 'kinokino/profile.html', context)
 
 
-# DRF
 @csrf_exempt
 def movie_list_api(request):
-    """
-    List all code snippets, or create a new snippet.
-    """
     if request.method == 'GET':
         movies = Movie.objects.all()
         serializer = MovieSerializer(movies, many=True)
@@ -432,9 +428,6 @@ def movie_list_api(request):
 
 @csrf_exempt
 def movie_detail_api(request, pk):
-    """
-    Retrieve, update or delete a code snippet.
-    """
     try:
         movie = Movie.objects.get(pk=pk)
     except Movie.DoesNotExist:
