@@ -417,7 +417,7 @@ def movie_list_api(request):
         serializer = MovieSerializer(movies, many=True)
         return JsonResponse(serializer.data, safe=False)
 
-    elif request.method == 'POST':
+    if request.method == 'POST':
         data = JSONParser().parse(request)
         serializer = MovieSerializer(data=data)
         if serializer.is_valid():
@@ -437,7 +437,7 @@ def movie_detail_api(request, pk):
         serializer = MovieSerializer(movie)
         return JsonResponse(serializer.data)
 
-    elif request.method == 'PUT':
+    if request.method == 'PUT':
         data = JSONParser().parse(request)
         serializer = MovieSerializer(movie, data=data)
         if serializer.is_valid():
@@ -445,7 +445,7 @@ def movie_detail_api(request, pk):
             return JsonResponse(serializer.data)
         return JsonResponse(serializer.errors, status=400)
 
-    elif request.method == 'DELETE':
+    if request.method == 'DELETE':
         movie.delete()
         return HttpResponse(status=204)
 
