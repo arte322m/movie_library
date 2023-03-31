@@ -464,4 +464,3 @@ def create_user_api(request):
             else:
                 return JsonResponse(serializer.errors, status=418)
         return JsonResponse(serializer.errors, status=400)
-
