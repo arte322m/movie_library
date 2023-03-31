@@ -4,12 +4,16 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.cache import cache
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from rest_framework.parsers import JSONParser
 
 from kinokino.kinopoisk_api_search import search_function
 from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection, CompletedEpisode
+from kinokino.serializers import MovieSerializer, UserSerializer
 
 
 @login_required(login_url='/accounts/login')
@@ -104,7 +108,7 @@ def search(request, search_text):
         ])
         if search_result == 'всё плохо((((':
             return render(request, 'kinokino/search.html', {'seach_text': search_text, 'error_message': search_result})
-        cache.set(f'search_result_{search_text}', search_result, 60*5)
+        cache.set(f'search_result_{search_text}', search_result, 60 * 5)
 
     context['search_result'] = search_result
     return render(request, 'kinokino/search.html', context)
@@ -404,3 +408,67 @@ def profile(request):
         'planned_to_watch_count': planned_to_watch_count,
     }
     return render(request, 'kinokino/profile.html', context)
+
+
+# DRF
+@csrf_exempt
+def movie_list_api(request):
+    """
+    List all code snippets, or create a new snippet.
+    """
+    if request.method == 'GET':
+        movies = Movie.objects.all()
+        serializer = MovieSerializer(movies, many=True)
+        return JsonResponse(serializer.data, safe=False)
+
+    elif request.method == 'POST':
+        data = JSONParser().parse(request)
+        serializer = MovieSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        return JsonResponse(serializer.errors, status=400)
+
+
+@csrf_exempt
+def movie_detail_api(request, pk):
+    """
+    Retrieve, update or delete a code snippet.
+    """
+    try:
+        movie = Movie.objects.get(pk=pk)
+    except Movie.DoesNotExist:
+        return HttpResponse(status=404)
+
+    if request.method == 'GET':
+        serializer = MovieSerializer(movie)
+        return JsonResponse(serializer.data)
+
+    elif request.method == 'PUT':
+        data = JSONParser().parse(request)
+        serializer = MovieSerializer(movie, data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data)
+        return JsonResponse(serializer.errors, status=400)
+
+    elif request.method == 'DELETE':
+        movie.delete()
+        return HttpResponse(status=204)
+
+
+@csrf_exempt
+def create_user_api(request):
+    if request.method == 'POST':
+        data = JSONParser().parse(request)
+        serializer = UserSerializer(data=data)
+        if serializer.is_valid():
+            try:
+                User.objects.get(username=data['username'])
+            except User.DoesNotExist:
+                serializer.save()
+                return JsonResponse(serializer.data, status=201)
+            else:
+                return JsonResponse(serializer.errors, status=418)
+        return JsonResponse(serializer.errors, status=400)
+

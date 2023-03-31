@@ -29,4 +29,7 @@ urlpatterns = [
     path('bookmarks/completed/', views.bookmarks_completed, name='bookmarks_completed'),
     path('bookmarks/planned_to_watch/', views.bookmarks_planned_to_watch, name='bookmarks_planned_to_watch'),
     path('bookmarks/watching/', views.bookmarks_watching, name='bookmarks_watching'),
+    path('v1/movie_api/', views.movie_list_api),
+    path('v1/movie_api/<int:pk>/', views.movie_detail_api),
+    path('v1/start/', views.create_user_api),
 ]
