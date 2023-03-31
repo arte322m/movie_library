@@ -461,6 +461,5 @@ def create_user_api(request):
             except User.DoesNotExist:
                 serializer.save()
                 return JsonResponse(serializer.data, status=201)
-            else:
-                return JsonResponse(serializer.errors, status=418)
+            return JsonResponse(serializer.errors, status=418)
         return JsonResponse(serializer.errors, status=400)
