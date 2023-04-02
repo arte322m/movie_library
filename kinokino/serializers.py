@@ -1,3 +1,5 @@
+from abc import ABC
+
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from rest_framework import serializers
@@ -44,16 +46,18 @@ class MovieSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150)
-    password = serializers.CharField(max_length=150)
 
-    def create(self, validated_data):
-        validated_data['password'] = make_password(validated_data.get('password'))
-        user = User.objects.create(**validated_data)
-        UserProfile.objects.create(user=user)
-        return user
 
-    def update(self, instance, validated_data):
-        instance.username = validated_data.get('username', instance.username)
-        instance.password = validated_data.get('password', instance.password)
-        instance.save()
-        return instance
+class SearchingApiSerializer(serializers.Serializer):
+    name = serializers.CharField()
+
+
+class AddMovieSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    type = serializers.CharField()
+    name = serializers.CharField()
+    year = serializers.CharField()
+    preview_url = serializers.CharField()
+    release_years_start = serializers.CharField(required=False)
+    release_years_end = serializers.CharField(required=False)
+    username = serializers.CharField()
