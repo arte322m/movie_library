@@ -53,11 +53,6 @@ class SearchingApiSerializer(serializers.Serializer):
 
 
 class AddMovieSerializer(serializers.Serializer):
-    id = serializers.CharField()
-    type = serializers.CharField()
+    number = serializers.CharField()
     name = serializers.CharField()
-    year = serializers.CharField()
-    preview_url = serializers.CharField()
-    release_years_start = serializers.CharField(required=False)
-    release_years_end = serializers.CharField(required=False)
     username = serializers.CharField()

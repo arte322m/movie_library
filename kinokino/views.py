@@ -15,9 +15,10 @@ from rest_framework.decorators import permission_classes
 from rest_framework import status, permissions
 from rest_framework.views import Request, APIView, Response
 
-from kinokino.kinopoisk_api_search import search_function, search_film_by_name
+from kinokino.kinopoisk_parser import search_function, search_film_by_name
 from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection, CompletedEpisode
 from kinokino.serializers import MovieSerializer, UserSerializer, SearchingApiSerializer, AddMovieSerializer
+from kinokino.utils import add_movie_episodes
 
 
 @login_required(login_url='/accounts/login')
@@ -121,75 +122,24 @@ def search(request, search_text):
 @require_POST
 @login_required(login_url='/accounts/login')
 def add_movie(request):
-    user = UserProfile.objects.get(user_id=request.user.id)
-    kinopoisk_id = int(request.POST['movie_id'])
-    if Movie.objects.filter(kinopoisk_id=kinopoisk_id):
-        movie = Movie.objects.get(kinopoisk_id=kinopoisk_id)
-        MovieStatus.objects.create(movie=movie, user=user, status=MovieStatus.PLANNED_TO_WATCH)
-        return redirect('kinokino:search', search_text=request.POST['search_text'])
-    name = request.POST['movie_name']
-    year = int(request.POST['movie_year'])
-    movie_type = request.POST['movie_type']
-    preview_url = request.POST['preview_url']
     if request.POST['release_years']:
-        all_episode_count = 0
-        seasons = []
-        search_result = search_function['search_series']([('movieId', kinopoisk_id)])
-        release_year_start = request.POST['release_years'][11:15]
-        release_year_end = request.POST['release_years'][24:28]
-        new_movie = Movie.objects.create(
-            name=name,
-            kinopoisk_id=kinopoisk_id,
-            year=year,
-            preview_url=preview_url,
-        )
-        new_movie.type = movie_type
-        if release_year_start != 'None':
-            new_movie.release_year_start = release_year_start
-        if release_year_end != 'None':
-            new_movie.release_year_end = release_year_end
-        new_movie.save()
-        for season_info in search_result:
-            number = season_info['number']
-            if number == 0:
-                continue
-            if number in seasons:
-                continue
-            seasons.append(number)
-            episodes_count = len(season_info['episodes'])
-            all_episode_count += episodes_count
-            new_season = Season.objects.create(
-                movie_id=new_movie,
-                number=number,
-                episodes_count=episodes_count
-            )
-            for episodes_info in season_info['episodes']:
-                number = episodes_info['number']
-                if episodes_info['name']:
-                    episode_name = episodes_info['name']
-                else:
-                    episode_name = episodes_info['enName']
-                date_str = episodes_info['date'][:10]
-                date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
-                Episode.objects.create(
-                    number=number,
-                    date=date,
-                    name=episode_name,
-                    season=new_season,
-                )
-        new_movie.episodes_count = all_episode_count
-        new_movie.seasons_count = len(seasons)
-        new_movie.save()
+        year_end = 0
+        if request.POST['release_years'][23:27] != 'None':
+            year_end = int(request.POST['release_years'][23:27])
+        year_start = int(request.POST['release_years'][10:14])
     else:
-        new_movie = Movie.objects.create(
-            name=name,
-            kinopoisk_id=kinopoisk_id,
-            year=year,
-            preview_url=preview_url,
-        )
-        new_movie.type = movie_type
-        new_movie.save()
-    MovieStatus.objects.create(movie=new_movie, user=user, status=MovieStatus.PLANNED_TO_WATCH)
+        year_start = 0
+        year_end = 0
+    add_movie_episodes(
+        username=request.user.username,
+        name=request.POST['movie_name'],
+        kin_id=int(request.POST['movie_id']),
+        year=int(request.POST['movie_year']),
+        movie_type=request.POST['movie_type'],
+        preview_url=request.POST['preview_url'],
+        year_start=year_start,
+        year_end=year_end,
+    )
     return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
@@ -494,88 +444,43 @@ class SearchingApi(APIView):
 class AddMovieApi(APIView):
 
     def post(self, request: Request):
+
         serializer = AddMovieSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        username = data['username']
-        kinopoisk_id = data['id']
-        name = data['name']
-        year = data['year']
-        preview_url = data['preview_url']
-        movie_type = data['type']
-        try:
-            release_years_start = data['release_years_start']
-        except KeyError:
-            release_years_start = None
-        try:
-            release_years_end = data['release_years_end']
-        except KeyError:
-            release_years_end = None
-        user = UserProfile.objects.get(user__username=username)
-        try:
-            if Movie.objects.get(kinopoisk_id=kinopoisk_id):
-                movie = Movie.objects.get(kinopoisk_id=kinopoisk_id)
-                try:
-                    if MovieStatus.objects.get(user=user, movie=movie):
-                        return Response(status=status.HTTP_200_OK)
-                except MovieStatus.DoesNotExist:
-                    MovieStatus.objects.create(user=user, status=MovieStatus.PLANNED_TO_WATCH, movie=movie)
-                    return Response(status=status.HTTP_201_CREATED)
-        except Movie.DoesNotExist:
 
-            if release_years_start:
-                all_episode_count = 0
-                seasons = []
-                search_result = search_function['search_series']([('movieId', kinopoisk_id)])
-                new_movie = Movie.objects.create(
-                    name=name,
-                    kinopoisk_id=kinopoisk_id,
-                    year=year,
-                    preview_url=preview_url,
-                    type=movie_type,
-                    release_year_start=release_years_start,
-                )
-                if release_years_end:
-                    new_movie.release_year_end = release_years_end
-                new_movie.save()
-                for season_info in search_result:
-                    number = season_info['number']
-                    if number == 0:
-                        continue
-                    if number in seasons:
-                        continue
-                    seasons.append(number)
-                    episodes_count = len(season_info['episodes'])
-                    all_episode_count += episodes_count
-                    new_season = Season.objects.create(
-                        movie_id=new_movie,
-                        number=number,
-                        episodes_count=episodes_count
-                    )
-                    for episodes_info in season_info['episodes']:
-                        number = episodes_info['number']
-                        if episodes_info['name']:
-                            episode_name = episodes_info['name']
-                        else:
-                            episode_name = episodes_info['enName']
-                        date_str = episodes_info['date'][:10]
-                        date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
-                        Episode.objects.create(
-                            number=number,
-                            date=date,
-                            name=episode_name,
-                            season=new_season,
-                        )
-                    new_movie.episodes_count = all_episode_count
-                    new_movie.seasons_count = len(seasons)
-                    new_movie.save()
-            else:
-                new_movie = Movie.objects.create(
-                    name=name,
-                    kinopoisk_id=kinopoisk_id,
-                    type=movie_type,
-                    preview_url=preview_url,
-                    year=year,
-                )
-            MovieStatus.objects.create(user=user, status=MovieStatus.PLANNED_TO_WATCH, movie=new_movie)
-        return Response(data=data, status=status.HTTP_201_CREATED)
+        search_text = data['name']
+        search_film_by_name_result = cache.get(f'search_result_{search_text}')
+        if not search_film_by_name_result:
+            search_film_by_name_result = search_film_by_name(search_text)
+            if search_film_by_name_result == 'всё плохо((((':
+                return Response(status=status.HTTP_403_FORBIDDEN)
+            cache.set(f'search_result_{search_text}', search_film_by_name_result, 60 * 5)
+
+        film_number = int(data['number'])
+        found_film = search_film_by_name_result[film_number]
+        username = data['username']
+        name = found_film['name']
+        kin_id = found_film['id']
+        year = found_film['year']
+        movie_type = found_film['type']
+        preview_url = found_film['poster']['previewUrl']
+        try:
+            release_years = found_film['releaseYears']
+        except KeyError:
+            year_start = 0
+            year_end = 0
+        else:
+            year_start = release_years[0]['start']
+            year_end = release_years[0]['end']
+
+        return add_movie_episodes(
+            username=username,
+            name=name,
+            kin_id=kin_id,
+            year=year,
+            movie_type=movie_type,
+            preview_url=preview_url,
+            year_start=year_start,
+            year_end=year_end,
+        )

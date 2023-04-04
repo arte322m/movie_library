@@ -34,6 +34,12 @@ def search_series(params: list):
     return result
 
 
+def search_series_by_id(kin_id: int):
+    return search_series([
+        ('movieId', kin_id)
+    ])
+
+
 def search_film(params: list):
     params.append(('selectFields', 'id type name year releaseYears poster.previewUrl'))
     params.append(('limit', 9))
