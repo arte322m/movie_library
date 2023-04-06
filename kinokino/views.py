@@ -17,7 +17,8 @@ from rest_framework.views import Request, APIView, Response
 
 from kinokino.kinopoisk_parser import search_function, search_film_by_name
 from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection, CompletedEpisode
-from kinokino.serializers import MovieSerializer, UserSerializer, SearchingApiSerializer, AddMovieSerializer
+from kinokino.serializers import MovieSerializer, UserSerializer, SearchingApiSerializer, AddMovieSerializer, \
+    UserMoviesSerializer
 from kinokino.utils import add_movie_episodes
 
 
@@ -484,3 +485,67 @@ class AddMovieApi(APIView):
             year_start=year_start,
             year_end=year_end,
         )
+
+
+class ProfileStatisticsApi(APIView):
+
+    def post(self, request: Request):
+        serializer = UserSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        username = data['username']
+        try:
+            user = UserProfile.objects.get(user__username=username)
+        except UserProfile.DoesNotExist:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        all_count = user.moviestatus_set.all().count()
+        planned_count = user.moviestatus_set.filter(status=MovieStatus.PLANNED_TO_WATCH).count()
+        completed_count = user.moviestatus_set.filter(status=MovieStatus.COMPLETED).count()
+        watching_count = user.moviestatus_set.filter(status=MovieStatus.WATCHING).count()
+        result = {
+            'all_count': all_count,
+            'planned_count': planned_count,
+            'completed_count': completed_count,
+            'watching_count': watching_count,
+        }
+        return Response(data=result, status=status.HTTP_200_OK)
+
+
+class UserMovieApi(APIView):
+
+    def post(self, request: Request):
+        serializer = UserMoviesSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        username = data['username']
+        try:
+            user = UserProfile.objects.get(user__username=username)
+        except UserProfile.DoesNotExist:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        field_name = data['field_name']
+        if not field_name == 'None':
+            result_data = user.moviestatus_set.filter(status=field_name).values_list(
+                'movie__name',
+                'movie__year',
+                'movie__release_year_start',
+                'movie__release_year_end',
+            )
+        else:
+            result_data = user.moviestatus_set.all().values_list(
+                'movie__name',
+                'movie__year',
+                'movie__release_year_start',
+                'movie__release_year_end',
+            )
+        result_data_list = []
+        for film_info in result_data:
+            result_data_list.append(
+                {
+                    'name': film_info[0],
+                    'year': film_info[1],
+                    'year_start': film_info[2],
+                    'year_end': film_info[3],
+                }
+            )
+        result_data_json = {'films': result_data_list}
+        return Response(data=result_data_json, status=status.HTTP_200_OK)

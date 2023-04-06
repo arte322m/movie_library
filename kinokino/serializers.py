@@ -56,3 +56,8 @@ class AddMovieSerializer(serializers.Serializer):
     number = serializers.CharField()
     name = serializers.CharField()
     username = serializers.CharField()
+
+
+class UserMoviesSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    field_name = serializers.CharField()
