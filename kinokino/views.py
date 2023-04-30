@@ -529,6 +529,7 @@ class UserMovieApi(APIView):
                 'movie__year',
                 'movie__release_year_start',
                 'movie__release_year_end',
+                'movie__kinopoisk_id',
             )
         else:
             result_data = user.moviestatus_set.all().values_list(
@@ -536,6 +537,7 @@ class UserMovieApi(APIView):
                 'movie__year',
                 'movie__release_year_start',
                 'movie__release_year_end',
+                'movie__kinopoisk_id',
             )
         result_data_list = []
         for film_info in result_data:
@@ -545,6 +547,7 @@ class UserMovieApi(APIView):
                     'year': film_info[1],
                     'year_start': film_info[2],
                     'year_end': film_info[3],
+                    'id': film_info[4],
                 }
             )
         result_data_json = {'films': result_data_list}
