@@ -18,7 +18,7 @@ from rest_framework.views import Request, APIView, Response
 from kinokino.kinopoisk_parser import search_function, search_film_by_name
 from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection, CompletedEpisode
 from kinokino.serializers import MovieSerializer, UserSerializer, SearchingApiSerializer, AddMovieSerializer, \
-    UserMoviesSerializer
+    UserMoviesSerializer, MovieInfoSerializer, FavoriteMovieSerializer
 from kinokino.utils import add_movie_episodes
 
 
@@ -523,7 +523,15 @@ class UserMovieApi(APIView):
         except UserProfile.DoesNotExist:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         field_name = data['field_name']
-        if not field_name == 'None':
+        if field_name == 'favorite':
+            result_data = user.movie_set.all().values_list(
+                'name',
+                'year',
+                'release_year_start',
+                'release_year_end',
+                'kinopoisk_id',
+            )
+        elif not field_name == 'None':
             result_data = user.moviestatus_set.filter(status=field_name).values_list(
                 'movie__name',
                 'movie__year',
@@ -552,3 +560,52 @@ class UserMovieApi(APIView):
             )
         result_data_json = {'films': result_data_list}
         return Response(data=result_data_json, status=status.HTTP_200_OK)
+
+
+class MovieInfoAPI(APIView):
+
+    def post(self, request: Request):
+        serializer = MovieInfoSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        username = data['username']
+        try:
+            user = UserProfile.objects.get(user__username=username)
+        except UserProfile.DoesNotExist:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        movie_id = data['movie_id']
+        movie = Movie.objects.get(kinopoisk_id=movie_id)
+        favorite = movie.favorite.filter(user=user).exists()
+        result_data = {
+            'name': movie.name,
+            'year': movie.year,
+            'start': movie.release_year_start,
+            'end': movie.release_year_end,
+            'preview_url': movie.preview_url,
+            'seasons_count': movie.seasons_count,
+            'episodes_count': movie.episodes_count,
+            'favorite': favorite,
+        }
+        return Response(data=result_data, status=status.HTTP_200_OK)
+
+
+class AddToFavoriteAPI(APIView):
+
+    def post(self, request: Request):
+        serializer = FavoriteMovieSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        username = data['username']
+        fav = data['fav']
+        try:
+            user = UserProfile.objects.get(user__username=username)
+        except UserProfile.DoesNotExist:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        movie = Movie.objects.get(kinopoisk_id=request.POST['movie_id'])
+        if fav == 'rem':
+            movie.favorite.remove(user)
+            return Response(status=status.HTTP_200_OK)
+        elif fav == 'add':
+            movie.favorite.add(user)
+            return Response(status=status.HTTP_200_OK)
