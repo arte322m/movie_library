@@ -39,6 +39,7 @@ urlpatterns = [
     path('v1/profile_statistics/', views.ProfileStatisticsApi.as_view()),
     path('v1/user_movies/', views.UserMovieApi.as_view()),
     path('v1/movie_info/', views.MovieInfoAPI.as_view()),
+    path('v1/add_favorite/', views.AddToFavoriteAPI.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

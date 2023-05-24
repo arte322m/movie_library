@@ -597,15 +597,16 @@ class AddToFavoriteAPI(APIView):
         data = serializer.validated_data
         username = data['username']
         fav = data['fav']
+        movie_id = data['movie_id']
         try:
             user = UserProfile.objects.get(user__username=username)
         except UserProfile.DoesNotExist:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
 
-        movie = Movie.objects.get(kinopoisk_id=request.POST['movie_id'])
+        movie = Movie.objects.get(kinopoisk_id=movie_id)
         if fav == 'rem':
             movie.favorite.remove(user)
-            return Response(status=status.HTTP_200_OK)
+            return Response(data='Удалено из избранного', status=status.HTTP_200_OK)
         elif fav == 'add':
             movie.favorite.add(user)
-            return Response(status=status.HTTP_200_OK)
+            return Response(data='Добавлено в избранное', status=status.HTTP_200_OK)
