@@ -72,3 +72,9 @@ class FavoriteMovieSerializer(serializers.Serializer):
     username = serializers.CharField()
     movie_id = serializers.CharField()
     fav = serializers.CharField()
+
+
+class MovieStatusSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    movie_id = serializers.CharField()
+    status = serializers.CharField()

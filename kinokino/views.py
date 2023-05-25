@@ -18,7 +18,7 @@ from rest_framework.views import Request, APIView, Response
 from kinokino.kinopoisk_parser import search_function, search_film_by_name
 from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection, CompletedEpisode
 from kinokino.serializers import MovieSerializer, UserSerializer, SearchingApiSerializer, AddMovieSerializer, \
-    UserMoviesSerializer, MovieInfoSerializer, FavoriteMovieSerializer
+    UserMoviesSerializer, MovieInfoSerializer, FavoriteMovieSerializer, MovieStatusSerializer
 from kinokino.utils import add_movie_episodes
 
 
@@ -585,6 +585,7 @@ class MovieInfoAPI(APIView):
             'seasons_count': movie.seasons_count,
             'episodes_count': movie.episodes_count,
             'favorite': favorite,
+            'status': movie.moviestatus_set.get(user=user).status,
         }
         return Response(data=result_data, status=status.HTTP_200_OK)
 
@@ -610,3 +611,26 @@ class AddToFavoriteAPI(APIView):
         elif fav == 'add':
             movie.favorite.add(user)
             return Response(data='Добавлено в избранное', status=status.HTTP_200_OK)
+
+
+class ChangeStatusAPI(APIView):
+
+    def post(self, request: Request):
+        serializer = MovieStatusSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        username = data['username']
+        new_status = data['status']
+        movie_id = data['movie_id']
+        try:
+            user = UserProfile.objects.get(user__username=username)
+        except UserProfile.DoesNotExist:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        movie = Movie.objects.get(kinopoisk_id=movie_id)
+
+        movie_status = MovieStatus.objects.get(movie=movie, user=user)
+        movie_status.status = new_status
+        movie_status.save()
+
+        return Response(data=f'Статус изменён на {new_status}', status=status.HTTP_200_OK)
