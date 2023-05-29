@@ -18,7 +18,8 @@ from rest_framework.views import Request, APIView, Response
 from kinokino.kinopoisk_parser import search_function, search_film_by_name
 from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection, CompletedEpisode
 from kinokino.serializers import MovieSerializer, UserSerializer, SearchingApiSerializer, AddMovieSerializer, \
-    UserMoviesSerializer, MovieInfoSerializer, FavoriteMovieSerializer, MovieStatusSerializer
+    UserMoviesSerializer, MovieInfoSerializer, FavoriteMovieSerializer, MovieStatusSerializer, \
+    SeasonsEpisodesSerializer, CompleteEpisodeSerializer
 from kinokino.utils import add_movie_episodes
 
 
@@ -634,3 +635,61 @@ class ChangeStatusAPI(APIView):
         movie_status.save()
 
         return Response(data=f'Статус изменён на {new_status}', status=status.HTTP_200_OK)
+
+
+class SeasonsEpisodesAPI(APIView):
+
+    def post(self, request: Request):
+        serializer = SeasonsEpisodesSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        username = data['username']
+        movie_id = data['movie_id']
+        season_number = data['season_number']
+        try:
+            user = UserProfile.objects.get(user__username=username)
+        except UserProfile.DoesNotExist:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        movie = Movie.objects.get(kinopoisk_id=movie_id)
+
+        result_data = {
+            'seasons': movie.season_set.values_list('number', flat=True).order_by('number'),
+        }
+        if season_number != 'None':
+            season_number = int(season_number)
+            season = movie.season_set.get(number=season_number)
+            episodes_set = season.episode_set.values_list('number', flat=True).order_by('number')
+            result_data['episodes'] = episodes_set
+            result_data['complete_episodes'] = CompletedEpisode.objects.filter(season=season, user=user).values_list('episode__number', flat=True)
+
+        return Response(data=result_data, status=status.HTTP_200_OK)
+
+
+class AddEpisodeToCompleteAPI(APIView):
+
+    def post(self, request: Request):
+        serializer = CompleteEpisodeSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        username = data['username']
+        movie_id = data['movie_id']
+        episode_number = data['episode_number']
+        season_number = data['season_number']
+        complete = data['complete']
+        try:
+            user = UserProfile.objects.get(user__username=username)
+        except UserProfile.DoesNotExist:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        movie = Movie.objects.get(kinopoisk_id=movie_id)
+        season = movie.season_set.get(number=season_number)
+
+        episode = Episode.objects.get(number=episode_number, season=season)
+
+        if complete == 'rem':
+            CompletedEpisode.objects.get(user=user, season=season, episode=episode).delete()
+            return Response(data='Удалено', status=status.HTTP_200_OK)
+        elif complete == 'add':
+            CompletedEpisode.objects.create(user=user, season=season, episode=episode)
+            return Response(data='Добавлено', status=status.HTTP_200_OK)

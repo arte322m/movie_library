@@ -78,3 +78,17 @@ class MovieStatusSerializer(serializers.Serializer):
     username = serializers.CharField()
     movie_id = serializers.CharField()
     status = serializers.CharField()
+
+
+class SeasonsEpisodesSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    movie_id = serializers.CharField()
+    season_number = serializers.CharField()
+
+
+class CompleteEpisodeSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    movie_id = serializers.CharField()
+    season_number = serializers.CharField()
+    episode_number = serializers.CharField()
+    complete = serializers.CharField()
