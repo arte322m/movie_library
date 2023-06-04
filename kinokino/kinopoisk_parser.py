@@ -23,7 +23,7 @@ def search_series(params: list):
             if not episodes['enName'] and not episodes['name'] and not episodes['date']:
                 result = result[:-1]
         return result
-    elif not response.ok:
+    if not response.ok:
         return 'всё плохо(((('
     response_json = response.json()
     result = response_json['docs']
@@ -54,7 +54,7 @@ def search_film(params: list):
         response_json = response.json()
         result = response_json['docs']
         return result
-    elif not response.ok:
+    if not response.ok:
         return 'всё плохо(((('
     response_json = response.json()
     result = response_json['docs']

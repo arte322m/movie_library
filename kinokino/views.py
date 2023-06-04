@@ -608,7 +608,7 @@ class AddToFavoriteAPI(APIView):
         if fav == 'rem':
             movie.favorite.remove(user)
             return Response(data='Удалено из избранного', status=status.HTTP_200_OK)
-        elif fav == 'add':
+        if fav == 'add':
             movie.favorite.add(user)
             return Response(data='Добавлено в избранное', status=status.HTTP_200_OK)
 
@@ -704,6 +704,6 @@ class AddEpisodeToCompleteAPI(APIView):
         if complete == 'rem':
             CompletedEpisode.objects.get(user=user, season=season, episode=episode).delete()
             return Response(status=status.HTTP_200_OK)
-        elif complete == 'add':
+        if complete == 'add':
             CompletedEpisode.objects.create(user=user, season=season, episode=episode)
             return Response(status=status.HTTP_200_OK)
