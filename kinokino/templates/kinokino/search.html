@@ -2,22 +2,39 @@
 {% load static %}
 
 {% block content %}
-    <div class="row">
-        <div class="col">
-            <ol>
-                {% for film in search_result %}
-                    <div class="row mt-4">
-                        <li>
-                            <div class="col">
-                                <div class="row">
-                                    <img style="width: 150px; height: 225px" src="{{ film.poster.previewUrl}}">
-                                </div>
-                                <div class="row">{{ film.name }}</div>
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+    <ol>
+        {% for film in search_result %}
+            <div class="row mt-4">
+                <li>
+                    <div class="row">
+                        <div class="col-2">
+                            <div class="row">
+                                <img style="width: 150px; height: 225px" src="{{ film.poster.previewUrl}}">
                             </div>
-                        </li>
+                                <div class="row">
+                                    {{ film.name }}({{ film.year }})
+                                </div>
+                        </div>
+                        {% if film.id not in movie_data %}
+                            <div class="col">
+                                <form action="{% url 'kinokino:add_movie' %}" method="post">
+                                    {% csrf_token %}
+                                    <input name="search_text" value="{{ name }}" hidden>
+                                    <input name="movie_name" value="{{ film.name }}" hidden>
+                                    <input name="movie_id" value="{{ film.id }}" hidden>
+                                    <input name="movie_year" value="{{ film.year }}" hidden>
+                                    <input name="movie_type" value="{{ film.type }}" hidden>
+                                    <input name="release_years" value="{{ film.releaseYears }}" hidden>
+                                    <button type="submit">love this</button>
+                                </form>
+                            </div>
+                        {% endif %}
+
                     </div>
-                {% endfor %}
-            </ol>
-        </div>
-    </div>
+                </li>
+            </div>
+        {% endfor %}
+    </ol>
 {% endblock %}

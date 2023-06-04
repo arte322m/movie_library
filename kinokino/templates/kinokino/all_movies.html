@@ -1,0 +1,28 @@
+{% extends 'kinokino/base.html' %}
+
+{% block title %}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col">
+            <ol>
+                {% for movie_info in movie_data %}
+                    <div class="row">
+                        <li>
+                            <a href="{% url 'kinokino:all_seasons' movie_info|first %}">{{ movie_info|last }}</a>
+                        </li>
+                    </div>
+                {% endfor %}
+            </ol>
+        </div>
+
+        <div class="col">
+        {% block season %}{% endblock %}
+        </div>
+
+        <div class="col">
+            {% block episode %}{% endblock %}
+        </div>
+    </div>
+
+{% endblock %}

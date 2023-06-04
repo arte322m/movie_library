@@ -10,4 +10,9 @@ urlpatterns = [
     path('switch_theme/', views.switch_theme, name='switch_theme'),
     path('searching/', views.searching, name='searching'),
     path('search/<str:search_text>', views.search, name='search'),
+    path('add/', views.add_movie, name='add_movie'),
+    path('favorite/', views.favorite, name='favorite'),
+    path('movies/', views.all_movies, name='all_movies'),
+    path('movies/<int:movie_id>', views.all_seasons, name='all_seasons'),
+    path('movies/<int:movie_id>/<int:season_id>', views.all_episodes, name='all_episodes'),
 ]

@@ -14,35 +14,48 @@ class UserProfile(models.Model):
 
 
 class Movie(models.Model):
-    MOVIE = 'MOVIE'
-    TV_SERIES = 'TV-SERIES'
-    CARTOON = 'CARTOON'
-    ANIME = 'ANIME'
-    ANIMATED_SERIES = 'ANIMATED-SERIES'
-    TV_SHOW = 'TV-SHOW'
+    MOVIE = 'movie'
+    TV_SERIES = 'tv-series'
+    CARTOON = 'cartoon'
+    ANIME = 'anime'
+    ANIMATED_SERIES = 'animated-series'
+    TV_SHOW = 'tv-show'
     TYPE_MOVIE = [
-        (MOVIE, 'movie'),
-        (TV_SERIES, 'tv-series'),
-        (CARTOON, 'cartoon'),
-        (ANIME, 'anime'),
-        (ANIMATED_SERIES, 'animated-series'),
-        (TV_SHOW, 'tv-show'),
+        (MOVIE, 'Movie'),
+        (TV_SERIES, 'Tv-Series'),
+        (CARTOON, 'Cartoon'),
+        (ANIME, 'Anime'),
+        (ANIMATED_SERIES, 'Animated-Series'),
+        (TV_SHOW, 'TV-Show'),
     ]
-    kinopoisk_id = models.IntegerField
+    # NONE = 'Не смотрю'
+    # PLANNED_TO_WATCH = 'Хочу посмотреть'
+    # WATCHING = 'Смотрю'
+    # COMPLETED = 'Просмотрено'
+    # MOVIE_STATUS = [
+    #     (NONE, 'не смотрю'),
+    #     (PLANNED_TO_WATCH, 'хочу посмотреть'),
+    #     (WATCHING, 'смотрю'),
+    #     (COMPLETED, 'просмотрено'),
+    # ]
+    kinopoisk_id = models.IntegerField(default=None)
     name = models.CharField(max_length=50)
-    year = models.IntegerField
-    type = models.CharField(max_length=15, choices=TYPE_MOVIE)
+    year = models.IntegerField(default=None)
+    type = models.CharField(max_length=15, choices=TYPE_MOVIE, default=None, null=True)
     seasons_count = models.IntegerField(null=True)
-    series_count = models.IntegerField(null=True)
+    release_year_start = models.IntegerField(null=True)
+    release_year_end = models.IntegerField(null=True)
+    favorite = models.ManyToManyField(UserProfile)
 
 
 class Season(models.Model):
     movie_id = models.ForeignKey(Movie, on_delete=models.CASCADE)
-    number = models.IntegerField
+    number = models.IntegerField(default=None)
+    episodes_count = models.IntegerField(default=None)
 
 
-class Series(models.Model):
-    number = models.IntegerField
-    date = models.DateField
+class Episode(models.Model):
+    number = models.IntegerField(default=None)
+    date = models.DateTimeField(default=None)
     name = models.CharField(max_length=50)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, default=None)
