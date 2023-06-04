@@ -1,0 +1,18 @@
+{% extends 'kinokino/bookmarks.html' %}
+{% load static %}
+
+{% block title %}Просмотренное{% endblock %}
+
+{% block bookmarks_content %}
+    {% if movie_list %}
+        <ol>
+            {% for movie in movie_list %}
+                <li>
+                    {{ movie }}
+                </li>
+            {% endfor %}
+        </ol>
+    {% else %}
+        Пусто
+    {% endif %}
+{% endblock %}

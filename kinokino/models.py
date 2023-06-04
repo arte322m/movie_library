@@ -32,6 +32,7 @@ class Movie(models.Model):
     name = models.CharField(max_length=50)
     year = models.IntegerField(default=None)
     type = models.CharField(max_length=15, choices=TYPE_MOVIE, default=None, null=True)
+    preview_url = models.CharField(max_length=150, default=None, null=True)
     seasons_count = models.IntegerField(null=True)
     release_year_start = models.IntegerField(null=True)
     release_year_end = models.IntegerField(null=True)
@@ -50,6 +51,7 @@ class Episode(models.Model):
     date = models.DateField(default=None)
     name = models.CharField(max_length=50, null=True)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, default=None)
+    complete = models.ManyToManyField(UserProfile)
 
 
 class MovieStatus(models.Model):

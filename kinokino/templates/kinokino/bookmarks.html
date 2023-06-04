@@ -1,0 +1,25 @@
+{% extends 'kinokino/base.html' %}
+
+{% block title %}Закладки{% endblock %}
+
+{% block content %}
+    <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0 bg">
+
+        <a href="{% url 'kinokino:bookmarks_all' %}" class="nav-link px-2">Все</a>
+
+        <a href="{% url 'kinokino:bookmarks_favorite' %}" class="nav-link px-2">Избранное</a>
+
+        <a href="{% url 'kinokino:bookmarks_planned_to_watch' %}" class="nav-link px-2">Запланировано</a>
+
+        <a href="{% url 'kinokino:bookmarks_watching' %}" class="nav-link px-2">Смотрю</a>
+
+        <a href="{% url 'kinokino:bookmarks_completed' %}" class="nav-link px-2">Просмотрено</a>
+
+    </ul>
+
+    <div class="col">
+        {% block bookmarks_content %}
+
+        {% endblock %}
+    </div>
+{% endblock %}

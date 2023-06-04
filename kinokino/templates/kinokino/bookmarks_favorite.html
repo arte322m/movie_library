@@ -1,7 +1,7 @@
-{% extends 'kinokino/base.html' %}
-{% block title %}{% endblock %}
+{% extends 'kinokino/bookmarks.html' %}
+{% block title %}Избранное{% endblock %}
 
-{% block content %}
+{% block bookmarks_content %}
 
     <ol>
         {% for favorite_movie in favorite_movies %}

@@ -12,6 +12,54 @@ from kinokino.kinopoisk_api_search import search_function
 from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection
 
 
+@login_required(login_url='/accounts/login')
+def main(request):
+    return render(request, 'kinokino/main.html')
+
+
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['login']
+        password = request.POST['password']
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+            profile_id = User.objects.get(username=username).id
+            u_profile = UserProfile.objects.filter(user_id=profile_id)
+            if not u_profile:
+                UserProfile(user_id=profile_id).save()
+            if UserProfile.objects.get(user_id=profile_id).type_of_theme == UserProfile.DARK:
+                request.session['theme'] = UserProfile.DARK
+            else:
+                request.session['theme'] = UserProfile.LIGHT
+            return redirect(reverse('kinokino:main'))
+        if not User.objects.filter(username=username):
+            return render(request, 'kinokino/login.html', {'error_message': 'Такого логина не существует'})
+        return render(request, 'kinokino/login.html', {'error_message': 'Неправильный пароль'})
+    return render(request, 'kinokino/login.html')
+
+
+def registration(request):
+    if request.method == 'POST':
+        username = request.POST['login']
+        if User.objects.filter(username=username):
+            return render(request, 'kinokino/registration.html', {'error_message': 'Имя пользователя занято'})
+        if request.POST['password'] != request.POST['repeat_password']:
+            return render(request, 'kinokino/registration.html', {'error_message': 'Пароли не совпадают'})
+        user = User.objects.create_user(username=username, password=request.POST['password'])
+        UserProfile(user_id=user.id).save()
+        login(request, user)
+        return redirect(reverse('kinokino:main'))
+    return render(request, 'kinokino/registration.html')
+
+
+@login_required(login_url='/accounts/login')
+def logout_view(request):
+    logout(request)
+    return redirect(reverse('kinokino:main'))
+
+
+@login_required(login_url='/accounts/login')
 @require_POST
 def switch_theme(request):
     if request.user.is_authenticated:
@@ -35,54 +83,16 @@ def switch_theme(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
-def login_view(request):
-    if request.method == 'POST':
-        username = request.POST['login']
-        password = request.POST['password']
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            login(request, user)
-            profile_id = User.objects.get(username=username).id
-            profile = UserProfile.objects.filter(user_id=profile_id)
-            if not profile:
-                UserProfile(user_id=profile_id).save()
-            if UserProfile.objects.get(user_id=profile_id).type_of_theme == UserProfile.DARK:
-                request.session['theme'] = UserProfile.DARK
-            else:
-                request.session['theme'] = UserProfile.LIGHT
-            return redirect(reverse('kinokino:main'))
-        if not User.objects.filter(username=username):
-            return render(request, 'kinokino/login.html', {'error_message': 'Такого логина не существует'})
-        return render(request, 'kinokino/login.html', {'error_message': 'Неправильный пароль'})
-    return render(request, 'kinokino/login.html')
-
-
-def logout_view(request):
-    logout(request)
-    return redirect(reverse('kinokino:main'))
-
-
-def registration(request):
-    if request.method == 'POST':
-        username = request.POST['login']
-        if User.objects.filter(username=username):
-            return render(request, 'kinokino/registration.html', {'error_message': 'Имя пользователя занято'})
-        if request.POST['password'] != request.POST['repeat_password']:
-            return render(request, 'kinokino/registration.html', {'error_message': 'Пароли не совпадают'})
-        user = User.objects.create_user(username=username, password=request.POST['password'])
-        UserProfile(user_id=user.id).save()
-        login(request, user)
-        return redirect(reverse('kinokino:main'))
-    return render(request, 'kinokino/registration.html')
-
-
 @require_POST
+@login_required(login_url='/accounts/login')
 def searching(request):
     return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
+@login_required(login_url='/accounts/login')
 def search(request, search_text):
-    movie_data = Movie.objects.values_list('kinopoisk_id', flat=True)
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_data = user.moviestatus_set.values_list('movie__kinopoisk_id', flat=True)
     context = {
         'movie_data': movie_data,
         'name': search_text,
@@ -101,11 +111,18 @@ def search(request, search_text):
 
 
 @require_POST
+@login_required(login_url='/accounts/login')
 def add_movie(request):
-    name = request.POST['movie_name']
+    user = UserProfile.objects.get(user_id=request.user.id)
     kinopoisk_id = int(request.POST['movie_id'])
+    if Movie.objects.filter(kinopoisk_id=kinopoisk_id):
+        movie = Movie.objects.get(kinopoisk_id=kinopoisk_id)
+        MovieStatus.objects.create(movie=movie, user=user, status=MovieStatus.PLANNED_TO_WATCH)
+        return redirect('kinokino:search', search_text=request.POST['search_text'])
+    name = request.POST['movie_name']
     year = int(request.POST['movie_year'])
     movie_type = request.POST['movie_type']
+    preview_url = request.POST['preview_url']
     if request.POST['release_years']:
         all_episode_count = 0
         seasons = []
@@ -117,6 +134,7 @@ def add_movie(request):
             kinopoisk_id=kinopoisk_id,
             year=year,
             seasons_count=len(search_result),
+            preview_url=preview_url,
         )
         new_movie.type = movie_type
         if release_year_start != 'None':
@@ -162,22 +180,13 @@ def add_movie(request):
         )
         new_movie.type = movie_type
         new_movie.save()
+    MovieStatus.objects.create(movie=new_movie, user=user, status=MovieStatus.PLANNED_TO_WATCH)
     return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
-@login_required
-def favorite(request):
-    user_info = UserProfile.objects.get(user_id=request.user.id)
-    favorite_movies = user_info.movie_set.all()
-    context = {
-        'favorite_movies': favorite_movies,
-    }
-    return render(request, 'kinokino/favorite.html', context)
-
-
-@login_required
 @require_POST
-def favorite_movie(request):
+@login_required(login_url='/accounts/login')
+def add_movie_to_favorite(request):
     user_info = UserProfile.objects.get(user_id=request.user.id)
     movie_details = Movie.objects.get(kinopoisk_id=request.POST['movie_id'])
 
@@ -189,19 +198,65 @@ def favorite_movie(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
-def all_movies(request):
-    movie_data = Movie.objects.all()
+@login_required(login_url='/accounts/login')
+def bookmarks(request):
+    return render(request, 'kinokino/bookmarks.html')
+
+
+@login_required(login_url='/accounts/login')
+def bookmarks_favorite(request):
+    user_info = UserProfile.objects.get(user_id=request.user.id)
+    favorite_movies = user_info.movie_set.all()
+    context = {
+        'favorite_movies': favorite_movies,
+    }
+    return render(request, 'kinokino/bookmarks_favorite.html', context)
+
+
+@login_required(login_url='/accounts/login')
+def bookmarks_watching(request):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_list = user.moviestatus_set.filter(status='Смотрю').values_list('movie__name', flat=True)
+    context = {
+        'movie_list': movie_list,
+    }
+    return render(request, 'kinokino/bookmarks_watching.html', context)
+
+
+@login_required(login_url='/accounts/login')
+def bookmarks_planned_to_watch(request):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_list = user.moviestatus_set.filter(status='Запланировано').values_list('movie__name', flat=True)
+    context = {
+        'movie_list': movie_list,
+    }
+    return render(request, 'kinokino/bookmarks_planned_to_watch.html', context)
+
+
+@login_required(login_url='/accounts/login')
+def bookmarks_completed(request):
+    context = {}
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_list = user.moviestatus_set.filter(status='Просмотрено').values_list('movie__name', flat=True)
+    context['movie_list'] = movie_list
+    return render(request, 'kinokino/completed_bookmarks.html', context)
+
+
+@login_required(login_url='/accounts/login')
+def bookmarks_all(request):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
+    movie_data = user.moviestatus_set.all()
     context = {
         'movie_data': movie_data,
+        'favorite_movie_list': favorite_movie_list,
     }
-    if request.user.is_authenticated:
-        user = UserProfile.objects.get(user_id=request.user.id)
-        favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
-        context['favorite_movie_list'] = favorite_movie_list
-    return render(request, 'kinokino/all_movies.html', context)
+
+    return render(request, 'kinokino/bookmarks_all.html', context)
 
 
-def all_seasons(request, movie_id):
+@login_required(login_url='/accounts/login')
+def detail_movie(request, movie_id):
     movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
     season_info = movie.season_set.order_by('number').all()
@@ -219,13 +274,14 @@ def all_seasons(request, movie_id):
         if MovieStatus.objects.filter(user=user, movie=movie):
             movie_status = MovieStatus.objects.get(user=user, movie=movie)
             context['movie_status'] = movie_status
-    return render(request, 'kinokino/all_seasons.html', context)
+    return render(request, 'kinokino/detail_movie.html', context)
 
 
-def all_episodes(request, movie_id, season_id):
+@login_required(login_url='/accounts/login')
+def detail_season(request, movie_id, season_id):
     movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
-    season_info = movie.season_set.all()
+    season_info = movie.season_set.order_by('number').all()
     episodes = season_info.get(number=season_id).episode_set.all().order_by('number')
     statuses = MovieStatus.MOVIE_STATUS
     context = {
@@ -239,11 +295,11 @@ def all_episodes(request, movie_id, season_id):
         user = UserProfile.objects.get(user_id=request.user.id)
         favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
         context['favorite_movie_list'] = favorite_movie_list
-    return render(request, 'kinokino/all_episodes.html', context)
+    return render(request, 'kinokino/detail_season.html', context)
 
 
-@login_required
 @require_POST
+@login_required(login_url='/accounts/login')
 def add_status(request):
     movie = Movie.objects.get(id=request.POST['movie_id'])
     user = UserProfile.objects.get(user_id=request.user.id)
@@ -262,18 +318,8 @@ def add_status(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
-@login_required
-def completed_movie(request):
-    user = UserProfile.objects.get(user_id=request.user.id)
-    movie_list = user.moviestatus_set.filter(status='Просмотрено')
-    context = {
-        'movie_list': movie_list,
-    }
-    return render(request, 'kinokino/completed_movie.html', context)
-
-
-@login_required
 @require_POST
+@login_required(login_url='/accounts/login')
 def delete_status(request):
     movie = Movie.objects.get(id=request.POST['movie_id'])
     user = UserProfile.objects.get(user_id=request.user.id)
@@ -281,16 +327,17 @@ def delete_status(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
-@login_required
+@login_required(login_url='/accounts/login')
 def collections(request):
-    all_collections = Collection.objects.all()
+    user = UserProfile.objects.get(user_id=request.user.id)
+    user_collections = user.collection_set.all()
     context = {
-        'all_collections': all_collections,
+        'all_collections': user_collections,
     }
     return render(request, 'kinokino/collections.html', context)
 
 
-@login_required
+@login_required(login_url='/accounts/login')
 def create_collection(request):
     if request.method == 'POST':
         Collection.objects.create(name=request.POST['name'], user=UserProfile.objects.get(user_id=request.user.id))
@@ -298,6 +345,7 @@ def create_collection(request):
     return render(request, 'kinokino/create_collection.html')
 
 
+@login_required(login_url='/accounts/login')
 def collection_detail(request, collection_id):
     detail = Collection.objects.get(id=collection_id)
     movies_set = detail.movie.all()
@@ -308,22 +356,22 @@ def collection_detail(request, collection_id):
     return render(request, 'kinokino/collection_detail.html', context)
 
 
-@login_required
+@login_required(login_url='/accounts/login')
 def change_collection(request, collection_id):
     user = UserProfile.objects.get(user_id=request.user.id)
-    favorite_movies = user.movie_set.all()
+    user_movies = user.movie_set.all()
     collection = Collection.objects.get(id=collection_id)
     movies_in_collection = collection.movie.all()
     context = {
-        'favorite_movies': favorite_movies,
+        'user_movies': user_movies,
         'movies_in_collection': movies_in_collection,
         'collection_id': collection_id,
     }
     return render(request, 'kinokino/change_collection.html', context)
 
 
-@login_required
 @require_POST
+@login_required(login_url='/accounts/login')
 def add_movie_in_collection(request):
     collection = Collection.objects.get(id=request.POST['collection_id'])
     movie_details = Movie.objects.get(id=request.POST['movie_id'])
@@ -335,8 +383,15 @@ def add_movie_in_collection(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
-def main(request):
+@login_required(login_url='/accounts/login')
+def profile(request):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    planned_to_watch_count = user.moviestatus_set.filter(status=MovieStatus.PLANNED_TO_WATCH).count
+    complete_count = user.moviestatus_set.filter(status=MovieStatus.COMPLETED).count
+    watching_count = user.moviestatus_set.filter(status=MovieStatus.WATCHING).count
     context = {
-
+        'watching_count': watching_count,
+        'complete_count': complete_count,
+        'planned_to_watch_count': planned_to_watch_count,
     }
-    return render(request, 'kinokino/main.html', context)
+    return render(request, 'kinokino/profile.html', context)

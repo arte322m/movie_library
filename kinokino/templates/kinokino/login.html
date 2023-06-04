@@ -1,26 +1,36 @@
 {% extends "kinokino/base.html" %}
 
+{% block title %}
+    Авторизация
+{% endblock %}
+
 {% block content %}
 
-<form action="{% url 'kinokino:login' %}" method="post">
-{% csrf_token %}
-    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    <div class="col text-center justify-content-center">
+        <div class="row text-center">
+            <h2>Вход</h2>
+        </div>
+        <form action="{% url 'kinokino:login' %}" method="post">
+        {% csrf_token %}
+            {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-    <div class="mb-3 row">
-        <label for="InputLogin" class="col-sm-1 col-form-label">Логин</label>
-        <div class="col-sm-5">
-          <input type="text" class="form-control form-control text-bg" id="InputLogin" placeholder="Логин" name="login" required>
+            <div class="mb-3 row justify-content-center">
+                <label for="InputLogin" class="col-sm-1 col-form-label">Логин</label>
+                <div class="col-sm-5">
+                  <input type="text" class="form-control form-control text-bg" id="InputLogin" placeholder="Логин" name="login" required>
+                </div>
+            </div>
+
+            <div class="mb-3 row justify-content-center">
+                <label for="inputPassword" class="col-sm-1 col-form-label">Пароль</label>
+                <div class="col-sm-5">
+                  <input type="password" class="form-control form-control text-bg" id="inputPassword" placeholder="Пароль" name="password" required>
+                </div>
+            </div>
+            <input class="btn btn-success" type="submit" value="Войти">
+        </form>
+        <div class="row justify-content-center">
+            Нет аккаунта? <a href="{% url 'kinokino:registration' %}">Зарегистрироваться</a>
         </div>
     </div>
-
-    <div class="mb-3 row">
-        <label for="inputPassword" class="col-sm-1 col-form-label">Пароль</label>
-        <div class="col-sm-5">
-          <input type="password" class="form-control form-control text-bg" id="inputPassword" placeholder="Пароль" name="password" required>
-        </div>
-    </div>
-    <input class="btn btn-success" type="submit" value="Войти">
-
-</form>
-
 {% endblock %}

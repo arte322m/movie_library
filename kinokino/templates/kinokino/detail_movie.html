@@ -1,9 +1,12 @@
-{% extends 'kinokino/all_movies.html' %}
+{% extends 'kinokino/base.html' %}
 
-{% block season %}
+{% block content %}
+    <img src="{{ movie.preview_url }}" height="250" width="145">
+
     {% if not movie.release_year_start %}
         <div class="row">
             <div class="col">
+
                 <div class="row">
                     {{ movie.name }}
                 </div>
@@ -41,7 +44,7 @@
                     <form action="{% url 'kinokino:delete_status' %}" method="post">
                     {% csrf_token %}
                         <input name="movie_id" value="{{ movie.id }}" hidden>
-                        <button type="submit" class="btn btn-danger">Удалить</button>
+                        <button type="submit" class="btn btn-danger">Удалить из списка</button>
                     </form>
                     {% else %}
                         <form action="{% url 'kinokino:add_status' %}" method="post">
@@ -70,12 +73,12 @@
     <ul>
         {% for season in season_info %}
             <li>
-                <a href="{% url 'kinokino:all_episodes' season.movie_id.kinopoisk_id season.number %}">{{ season.number }} ({{ season.episodes_count }})</a>
+                <a href="{% url 'kinokino:detail_season' season.movie_id.kinopoisk_id season.number %}">{{ season.number }} ({{ season.episodes_count }})</a>
             </li>
         {% endfor %}
     </ul>
 
     <div class="row">
-        <a class="row" href="{% url 'kinokino:all_movies' %}">Закрыть</a>
+        <a class="row" href="{% url 'kinokino:bookmarks_all' %}">Закрыть</a>
     </div>
 {% endblock %}
