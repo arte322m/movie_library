@@ -16,4 +16,7 @@ urlpatterns = [
     path('movies/<int:movie_id>', views.all_seasons, name='all_seasons'),
     path('movies/<int:movie_id>/<int:season_id>', views.all_episodes, name='all_episodes'),
     path('favorite_movie/', views.favorite_movie, name='favorite_movie'),
+    path('add_status/', views.add_status, name='add_status'),
+    path('delete_status/', views.delete_status, name='delete_status'),
+    path('movies/completed_movie/', views.completed_movie, name='completed_movie'),
 ]

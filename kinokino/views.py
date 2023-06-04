@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from kinokino.kinopoisk_api_search import search_function
-from kinokino.models import UserProfile, Movie, Episode, Season
+from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus
 
 
 @require_POST
@@ -107,6 +107,8 @@ def add_movie(request):
     year = int(request.POST['movie_year'])
     movie_type = request.POST['movie_type']
     if request.POST['release_years']:
+        all_episode_count = 0
+        seasons = []
         search_result = search_function['search_series']([('movieId', kinopoisk_id)])
         release_year_start = request.POST['release_years'][11:15]
         release_year_end = request.POST['release_years'][24:28]
@@ -124,7 +126,13 @@ def add_movie(request):
         new_movie.save()
         for season_info in search_result:
             number = season_info['number']
+            if number == 0:
+                continue
+            if number in seasons:
+                continue
+            seasons.append(number)
             episodes_count = len(season_info['episodes'])
+            all_episode_count += episodes_count
             new_season = Season.objects.create(
                 movie_id=new_movie,
                 number=number,
@@ -136,14 +144,16 @@ def add_movie(request):
                     episode_name = episodes_info['name']
                 else:
                     episode_name = episodes_info['enName']
-                date_str = episodes_info['date']
-                date = datetime.datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S.%fZ')
+                date_str = episodes_info['date'][:10]
+                date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
                 Episode.objects.create(
                     number=number,
                     date=date,
                     name=episode_name,
                     season=new_season,
                 )
+        new_movie.episodes_count = all_episode_count
+        new_movie.save()
     else:
         new_movie = Movie.objects.create(
             name=name,
@@ -155,7 +165,7 @@ def add_movie(request):
     return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
-@login_required()
+@login_required
 def favorite(request):
     user_info = UserProfile.objects.get(user_id=request.user.id)
     favorite_movies = user_info.movie_set.all()
@@ -180,7 +190,7 @@ def favorite_movie(request):
 
 
 def all_movies(request):
-    movie_data = Movie.objects.values_list('kinopoisk_id', 'name')
+    movie_data = Movie.objects.all()
     context = {
         'movie_data': movie_data,
     }
@@ -192,27 +202,36 @@ def all_movies(request):
 
 
 def all_seasons(request, movie_id):
-    movie_data = Movie.objects.values_list('kinopoisk_id', 'name')
+    movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
-    season_info = movie.season_set.all()
+    season_info = movie.season_set.order_by('number').all()
+    statuses = MovieStatus.MOVIE_STATUS
     context = {
         'movie_data': movie_data,
+        'movie': movie,
+        'statuses': statuses,
         'season_info': season_info,
     }
     if request.user.is_authenticated:
         user = UserProfile.objects.get(user_id=request.user.id)
         favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
         context['favorite_movie_list'] = favorite_movie_list
+        if MovieStatus.objects.filter(user=user, movie=movie):
+            movie_status = MovieStatus.objects.get(user=user, movie=movie)
+            context['movie_status'] = movie_status
     return render(request, 'kinokino/all_seasons.html', context)
 
 
 def all_episodes(request, movie_id, season_id):
-    movie_data = Movie.objects.values_list('kinopoisk_id', 'name')
+    movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
     season_info = movie.season_set.all()
-    episodes = season_info.get(number=season_id).episode_set.all()
+    episodes = season_info.get(number=season_id).episode_set.all().order_by('number')
+    statuses = MovieStatus.MOVIE_STATUS
     context = {
         'movie_data': movie_data,
+        'movie': movie,
+        'statuses': statuses,
         'season_info': season_info,
         'episodes': episodes,
     }
@@ -221,6 +240,45 @@ def all_episodes(request, movie_id, season_id):
         favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
         context['favorite_movie_list'] = favorite_movie_list
     return render(request, 'kinokino/all_episodes.html', context)
+
+
+@login_required
+@require_POST
+def add_status(request):
+    movie = Movie.objects.get(id=request.POST['movie_id'])
+    user = UserProfile.objects.get(user_id=request.user.id)
+    statuses = {
+        'Смотрю': MovieStatus.WATCHING,
+        'Запланировано': MovieStatus.PLANNED_TO_WATCH,
+        'Просмотрено': MovieStatus.COMPLETED,
+    }
+    status = statuses[request.POST['status']]
+    if not MovieStatus.objects.filter(movie=movie, user=user):
+        MovieStatus.objects.create(movie=movie, user=user, status=status)
+    else:
+        new_status = MovieStatus.objects.get(movie=movie, user=user)
+        new_status.status = status
+        new_status.save()
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+@login_required
+def completed_movie(request):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_list = user.moviestatus_set.filter(status='Просмотрено')
+    context = {
+        'movie_list': movie_list,
+    }
+    return render(request, 'kinokino/completed_movie.html', context)
+
+
+@login_required
+@require_POST
+def delete_status(request):
+    movie = Movie.objects.get(id=request.POST['movie_id'])
+    user = UserProfile.objects.get(user_id=request.user.id)
+    MovieStatus.objects.get(movie=movie, user=user).delete()
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 def main(request):

@@ -1,11 +1,11 @@
 {% extends 'kinokino/all_seasons.html' %}
 
 {% block episode %}
-    <ol>
+    <ul>
         {% for episode in episodes %}
             <li>
-                {{ episode.name }} ({{ episode.date }})
+                {{ episode.number }}) {{ episode.name }} ({{ episode.date }})
             </li>
         {% endfor %}
-    </ol>
+    </ul>
 {% endblock %}
