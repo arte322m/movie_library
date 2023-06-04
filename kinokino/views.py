@@ -660,6 +660,20 @@ class SeasonsEpisodesAPI(APIView):
             season_number = int(season_number)
             season = movie.season_set.get(number=season_number)
             episodes_set = season.episode_set.values_list('number', flat=True).order_by('number')
+
+            # result_episodes = {}
+            # for i in range(len(episodes_set) // 98 + 1):
+            #     result_episodes[i] = []
+            #     for j in episodes_set[i * 98:(i + 1) * 98]:
+            #         result_episodes[i].append(j)
+
+            result_episodes = len(episodes_set)
+
+            # result_episodes = []
+            # for i in range(len(episodes_set)):
+            #     result_episodes.append(i)
+
+            result_data['new_episode_set'] = result_episodes
             result_data['episodes'] = episodes_set
             result_data['complete_episodes'] = CompletedEpisode.objects.filter(season=season, user=user).values_list('episode__number', flat=True)
 
@@ -689,7 +703,7 @@ class AddEpisodeToCompleteAPI(APIView):
 
         if complete == 'rem':
             CompletedEpisode.objects.get(user=user, season=season, episode=episode).delete()
-            return Response(data='Удалено', status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
         elif complete == 'add':
             CompletedEpisode.objects.create(user=user, season=season, episode=episode)
-            return Response(data='Добавлено', status=status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
