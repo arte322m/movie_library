@@ -1,5 +1,3 @@
-import datetime
-
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
@@ -11,8 +9,9 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework.parsers import JSONParser
-from rest_framework.decorators import permission_classes
-from rest_framework import status, permissions
+# from rest_framework.decorators import permission_classes
+# from rest_framework import permissions
+from rest_framework import status
 from rest_framework.views import Request, APIView, Response
 
 from kinokino.kinopoisk_parser import search_function, search_film_by_name
@@ -279,12 +278,12 @@ def add_status(request):
         'Запланировано': MovieStatus.PLANNED_TO_WATCH,
         'Просмотрено': MovieStatus.COMPLETED,
     }
-    status = statuses[request.POST['status']]
+    status_name = statuses[request.POST['status']]
     if not MovieStatus.objects.filter(movie=movie, user=user):
-        MovieStatus.objects.create(movie=movie, user=user, status=status)
+        MovieStatus.objects.create(movie=movie, user=user, status=status_name)
     else:
         new_status = MovieStatus.objects.get(movie=movie, user=user)
-        new_status.status = status
+        new_status.status = status_name
         new_status.save()
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
@@ -675,7 +674,8 @@ class SeasonsEpisodesAPI(APIView):
 
             result_data['new_episode_set'] = result_episodes
             result_data['episodes'] = episodes_set
-            result_data['complete_episodes'] = CompletedEpisode.objects.filter(season=season, user=user).values_list('episode__number', flat=True)
+            result_data['complete_episodes'] = CompletedEpisode.objects.filter(season=season, user=user).values_list(
+                'episode__number', flat=True)
 
         return Response(data=result_data, status=status.HTTP_200_OK)
 
