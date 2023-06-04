@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from kinokino.kinopoisk_api_search import search_function
-from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus
+from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection
 
 
 @require_POST
@@ -278,6 +278,60 @@ def delete_status(request):
     movie = Movie.objects.get(id=request.POST['movie_id'])
     user = UserProfile.objects.get(user_id=request.user.id)
     MovieStatus.objects.get(movie=movie, user=user).delete()
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+@login_required
+def collections(request):
+    all_collections = Collection.objects.all()
+    context = {
+        'all_collections': all_collections,
+    }
+    return render(request, 'kinokino/collections.html', context)
+
+
+@login_required
+def create_collection(request):
+    if request.method == 'POST':
+        Collection.objects.create(name=request.POST['name'], user=UserProfile.objects.get(user_id=request.user.id))
+        return redirect('kinokino:collections')
+    return render(request, 'kinokino/create_collection.html')
+
+
+def collection_detail(request, collection_id):
+    detail = Collection.objects.get(id=collection_id)
+    movies_set = detail.movie.all()
+    context = {
+        'detail': detail,
+        'movies_set': movies_set,
+    }
+    return render(request, 'kinokino/collection_detail.html', context)
+
+
+@login_required
+def change_collection(request, collection_id):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    favorite_movies = user.movie_set.all()
+    collection = Collection.objects.get(id=collection_id)
+    movies_in_collection = collection.movie.all()
+    context = {
+        'favorite_movies': favorite_movies,
+        'movies_in_collection': movies_in_collection,
+        'collection_id': collection_id,
+    }
+    return render(request, 'kinokino/change_collection.html', context)
+
+
+@login_required
+@require_POST
+def add_movie_in_collection(request):
+    collection = Collection.objects.get(id=request.POST['collection_id'])
+    movie_details = Movie.objects.get(id=request.POST['movie_id'])
+
+    if request.POST['fav'] == 'rem':
+        collection.movie.remove(movie_details)
+    elif request.POST['fav'] == 'add':
+        collection.movie.add(movie_details)
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 

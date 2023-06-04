@@ -28,6 +28,8 @@
 
                 <a href="{% url 'kinokino:completed_movie' %}" class="nav-link px-2">Просмотрено</a>
 
+                <a href="{% url 'kinokino:collections' %}" class="nav-link px-2">Коллекции</a>
+
                 <li>
                     <form action="{% url 'kinokino:switch_theme' %}" method="post">
                         {% csrf_token %}
