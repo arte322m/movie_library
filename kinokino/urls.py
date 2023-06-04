@@ -1,5 +1,7 @@
 from django.urls import path
+from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
+
 
 app_name = 'kinokino'
 urlpatterns = [
@@ -29,4 +31,18 @@ urlpatterns = [
     path('bookmarks/completed/', views.bookmarks_completed, name='bookmarks_completed'),
     path('bookmarks/planned_to_watch/', views.bookmarks_planned_to_watch, name='bookmarks_planned_to_watch'),
     path('bookmarks/watching/', views.bookmarks_watching, name='bookmarks_watching'),
+    path('v1/movie_api/', views.movie_list_api),
+    path('v1/movie_api/<int:pk>/', views.movie_detail_api),
+    path('v1/start/', views.CreateUserApi.as_view()),
+    path('v1/search_film/', views.SearchingApi.as_view()),
+    path('v1/add_movie_api/', views.AddMovieApi.as_view()),
+    path('v1/profile_statistics/', views.ProfileStatisticsApi.as_view()),
+    path('v1/user_movies/', views.UserMovieApi.as_view()),
+    path('v1/movie_info/', views.MovieInfoAPI.as_view()),
+    path('v1/add_favorite/', views.AddToFavoriteAPI.as_view()),
+    path('v1/change_status/', views.ChangeStatusAPI.as_view()),
+    path('v1/seasons_episodes/', views.SeasonsEpisodesAPI.as_view()),
+    path('v1/add_episode/', views.AddEpisodeToCompleteAPI.as_view()),
 ]
+
+urlpatterns = format_suffix_patterns(urlpatterns)
