@@ -15,7 +15,7 @@ from rest_framework import status
 from rest_framework.views import Request, APIView, Response
 
 from kinokino.kinopoisk_parser import search_function, search_film_by_name
-from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection, CompletedEpisode
+from kinokino.models import UserProfile, Movie, Episode, MovieStatus, Collection, CompletedEpisode
 from kinokino.serializers import MovieSerializer, UserSerializer, SearchingApiSerializer, AddMovieSerializer, \
     UserMoviesSerializer, MovieInfoSerializer, FavoriteMovieSerializer, MovieStatusSerializer, \
     SeasonsEpisodesSerializer, CompleteEpisodeSerializer

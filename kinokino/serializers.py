@@ -4,7 +4,8 @@
 # from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from kinokino.models import UserProfile, Movie
+from kinokino.models import Movie
+# from kinokino.models import UserProfile
 
 
 class MovieSerializer(serializers.Serializer):
