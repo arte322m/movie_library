@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from kinokino.kinopoisk_api_search import search_function
-from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection
+from kinokino.models import UserProfile, Movie, Episode, Season, MovieStatus, Collection, CompletedEpisode
 
 
 @login_required(login_url='/accounts/login')
@@ -251,50 +251,60 @@ def bookmarks_all(request):
         'movie_data': movie_data,
         'favorite_movie_list': favorite_movie_list,
     }
-
     return render(request, 'kinokino/bookmarks_all.html', context)
 
 
 @login_required(login_url='/accounts/login')
 def detail_movie(request, movie_id):
-    movie_data = Movie.objects.all()
+    user = UserProfile.objects.get(user_id=request.user.id)
+    favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
     movie = Movie.objects.get(kinopoisk_id=movie_id)
     season_info = movie.season_set.order_by('number').all()
     statuses = MovieStatus.MOVIE_STATUS
+    completed = False
+    completed_episodes_count = 0
+    for season in movie.season_set.all():
+        completed_episodes_count += season.completedepisode_set.count()
+    if MovieStatus.objects.filter(movie=movie, status='Просмотрено'):
+        completed = True
     context = {
-        'movie_data': movie_data,
         'movie': movie,
+        'completed': completed,
         'statuses': statuses,
         'season_info': season_info,
+        'favorite_movie_list': favorite_movie_list,
+        'completed_episodes_count': completed_episodes_count,
     }
-    if request.user.is_authenticated:
-        user = UserProfile.objects.get(user_id=request.user.id)
-        favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
-        context['favorite_movie_list'] = favorite_movie_list
-        if MovieStatus.objects.filter(user=user, movie=movie):
-            movie_status = MovieStatus.objects.get(user=user, movie=movie)
-            context['movie_status'] = movie_status
+    if MovieStatus.objects.filter(user=user, movie=movie):
+        movie_status = MovieStatus.objects.get(user=user, movie=movie)
+        context['movie_status'] = movie_status
     return render(request, 'kinokino/detail_movie.html', context)
 
 
 @login_required(login_url='/accounts/login')
 def detail_season(request, movie_id, season_id):
-    movie_data = Movie.objects.all()
     movie = Movie.objects.get(kinopoisk_id=movie_id)
-    season_info = movie.season_set.order_by('number').all()
-    episodes = season_info.get(number=season_id).episode_set.all().order_by('number')
-    statuses = MovieStatus.MOVIE_STATUS
+    season_info = movie.season_set.get(number=season_id)
+    season_episodes = season_info.episode_set.all().order_by('number')
+    user = UserProfile.objects.get(user_id=request.user.id)
+    user_complete_episodes = user.completedepisode_set.filter(season=season_info).values_list('episode_id', flat=True)
+    completed = False
+    if MovieStatus.objects.filter(movie=movie, status='Просмотрено'):
+        completed = True
+    if request.method == 'POST':
+        if request.POST['add_or_rem'] == '+':
+            episode = Episode.objects.get(id=request.POST['episode'])
+            CompletedEpisode.objects.create(user=user, season=season_info, episode=episode)
+        elif request.POST['add_or_rem'] == '-':
+            episode = Episode.objects.get(id=request.POST['episode'])
+            CompletedEpisode.objects.get(user=user, season=season_info, episode=episode).delete()
+        return redirect(request.META.get('HTTP_REFERER', '/'))
     context = {
-        'movie_data': movie_data,
-        'movie': movie,
-        'statuses': statuses,
-        'season_info': season_info,
-        'episodes': episodes,
+        'season_episodes': season_episodes,
+        'completed': completed,
+        'movie_id': movie_id,
+        'user_complete_episodes': user_complete_episodes,
     }
-    if request.user.is_authenticated:
-        user = UserProfile.objects.get(user_id=request.user.id)
-        favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
-        context['favorite_movie_list'] = favorite_movie_list
     return render(request, 'kinokino/detail_season.html', context)
 
 
@@ -359,7 +369,7 @@ def collection_detail(request, collection_id):
 @login_required(login_url='/accounts/login')
 def change_collection(request, collection_id):
     user = UserProfile.objects.get(user_id=request.user.id)
-    user_movies = user.movie_set.all()
+    user_movies = user.moviestatus_set.all()
     collection = Collection.objects.get(id=collection_id)
     movies_in_collection = collection.movie.all()
     context = {
@@ -375,7 +385,6 @@ def change_collection(request, collection_id):
 def add_movie_in_collection(request):
     collection = Collection.objects.get(id=request.POST['collection_id'])
     movie_details = Movie.objects.get(id=request.POST['movie_id'])
-
     if request.POST['fav'] == 'rem':
         collection.movie.remove(movie_details)
     elif request.POST['fav'] == 'add':
