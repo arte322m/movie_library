@@ -15,4 +15,5 @@ urlpatterns = [
     path('movies/', views.all_movies, name='all_movies'),
     path('movies/<int:movie_id>', views.all_seasons, name='all_seasons'),
     path('movies/<int:movie_id>/<int:season_id>', views.all_episodes, name='all_episodes'),
+    path('favorite_movie/', views.favorite_movie, name='favorite_movie'),
 ]

@@ -1,6 +1,7 @@
 import datetime
 
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.shortcuts import render, redirect
@@ -114,8 +115,6 @@ def add_movie(request):
             kinopoisk_id=kinopoisk_id,
             year=year,
             seasons_count=len(search_result),
-            # release_year_start=release_year_start,
-            # release_year_end=release_year_end,
         )
         new_movie.type = movie_type
         if release_year_start != 'None':
@@ -156,8 +155,28 @@ def add_movie(request):
     return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
+@login_required()
 def favorite(request):
-    return render(request, 'kinokino/favorite.html')
+    user_info = UserProfile.objects.get(user_id=request.user.id)
+    favorite_movies = user_info.movie_set.all()
+    context = {
+        'favorite_movies': favorite_movies,
+    }
+    return render(request, 'kinokino/favorite.html', context)
+
+
+@login_required
+@require_POST
+def favorite_movie(request):
+    user_info = UserProfile.objects.get(user_id=request.user.id)
+    movie_details = Movie.objects.get(kinopoisk_id=request.POST['movie_id'])
+
+    if request.POST['fav'] == 'rem':
+        movie_details.favorite.remove(user_info)
+    elif request.POST['fav'] == 'add':
+        movie_details.favorite.add(user_info)
+
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 def all_movies(request):
@@ -165,6 +184,10 @@ def all_movies(request):
     context = {
         'movie_data': movie_data,
     }
+    if request.user.is_authenticated:
+        user = UserProfile.objects.get(user_id=request.user.id)
+        favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
+        context['favorite_movie_list'] = favorite_movie_list
     return render(request, 'kinokino/all_movies.html', context)
 
 
@@ -176,6 +199,10 @@ def all_seasons(request, movie_id):
         'movie_data': movie_data,
         'season_info': season_info,
     }
+    if request.user.is_authenticated:
+        user = UserProfile.objects.get(user_id=request.user.id)
+        favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
+        context['favorite_movie_list'] = favorite_movie_list
     return render(request, 'kinokino/all_seasons.html', context)
 
 
@@ -189,6 +216,10 @@ def all_episodes(request, movie_id, season_id):
         'season_info': season_info,
         'episodes': episodes,
     }
+    if request.user.is_authenticated:
+        user = UserProfile.objects.get(user_id=request.user.id)
+        favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
+        context['favorite_movie_list'] = favorite_movie_list
     return render(request, 'kinokino/all_episodes.html', context)
 
 

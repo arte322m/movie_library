@@ -57,5 +57,5 @@ class Season(models.Model):
 class Episode(models.Model):
     number = models.IntegerField(default=None)
     date = models.DateTimeField(default=None)
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, null=True)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, default=None)
