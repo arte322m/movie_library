@@ -15,7 +15,7 @@ from rest_framework import status
 from rest_framework.views import Request, APIView, Response
 
 from kinokino.kinopoisk_parser import search_function, search_film_by_name
-from kinokino.models import UserProfile, Movie, Episode, MovieStatus, Collection, CompletedEpisode
+from kinokino.models import UserProfile, Movie, Episode, UserMovieStatus, Collection, CompletedEpisode
 from kinokino.serializers import MovieSerializer, UserSerializer, SearchingApiSerializer, AddMovieSerializer, \
     UserMoviesSerializer, MovieInfoSerializer, FavoriteMovieSerializer, MovieStatusSerializer, \
     SeasonsEpisodesSerializer, CompleteEpisodeSerializer
@@ -102,7 +102,7 @@ def searching(request):
 @login_required(login_url='/accounts/login')
 def search(request, search_text):
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_data = user.moviestatus_set.values_list('movie__kinopoisk_id', flat=True)
+    movie_data = user.usermoviestatus_set.values_list('movie__kinopoisk_id', flat=True)
     context = {
         'movie_data': movie_data,
         'name': search_text,
@@ -176,7 +176,7 @@ def bookmarks_favorite(request):
 @login_required(login_url='/accounts/login')
 def bookmarks_watching(request):
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_list = user.moviestatus_set.filter(status='Смотрю').values_list('movie__name', flat=True)
+    movie_list = user.usermoviestatus_set.filter(status='Смотрю').values_list('movie__name', flat=True)
     context = {
         'movie_list': movie_list,
     }
@@ -186,7 +186,7 @@ def bookmarks_watching(request):
 @login_required(login_url='/accounts/login')
 def bookmarks_planned_to_watch(request):
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_list = user.moviestatus_set.filter(status='Запланировано').values_list('movie__name', flat=True)
+    movie_list = user.usermoviestatus_set.filter(status='Запланировано').values_list('movie__name', flat=True)
     context = {
         'movie_list': movie_list,
     }
@@ -197,7 +197,7 @@ def bookmarks_planned_to_watch(request):
 def bookmarks_completed(request):
     context = {}
     user = UserProfile.objects.get(user_id=request.user.id)
-    movie_list = user.moviestatus_set.filter(status='Просмотрено').values_list('movie__name', flat=True)
+    movie_list = user.usermoviestatus_set.filter(status='Просмотрено').values_list('movie__name', flat=True)
     context['movie_list'] = movie_list
     return render(request, 'kinokino/completed_bookmarks.html', context)
 
@@ -206,7 +206,7 @@ def bookmarks_completed(request):
 def bookmarks_all(request):
     user = UserProfile.objects.get(user_id=request.user.id)
     favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
-    movie_data = user.moviestatus_set.all()
+    movie_data = user.usermoviestatus_set.all()
     context = {
         'movie_data': movie_data,
         'favorite_movie_list': favorite_movie_list,
@@ -220,12 +220,12 @@ def detail_movie(request, movie_id):
     favorite_movie_list = user.movie_set.values_list('kinopoisk_id', flat=True)
     movie = Movie.objects.get(kinopoisk_id=movie_id)
     season_info = movie.season_set.order_by('number').all()
-    statuses = MovieStatus.MOVIE_STATUS
+    statuses = UserMovieStatus.USER_MOVIE_STATUS
     completed = False
     completed_episodes_count = 0
     for season in movie.season_set.all():
         completed_episodes_count += season.completedepisode_set.count()
-    if MovieStatus.objects.filter(movie=movie, status='Просмотрено'):
+    if UserMovieStatus.objects.filter(movie=movie, status='Просмотрено'):
         completed = True
     context = {
         'movie': movie,
@@ -235,8 +235,8 @@ def detail_movie(request, movie_id):
         'favorite_movie_list': favorite_movie_list,
         'completed_episodes_count': completed_episodes_count,
     }
-    if MovieStatus.objects.filter(user=user, movie=movie):
-        movie_status = MovieStatus.objects.get(user=user, movie=movie)
+    if UserMovieStatus.objects.filter(user=user, movie=movie):
+        movie_status = UserMovieStatus.objects.get(user=user, movie=movie)
         context['movie_status'] = movie_status
     return render(request, 'kinokino/detail_movie.html', context)
 
@@ -249,7 +249,7 @@ def detail_season(request, movie_id, season_id):
     user = UserProfile.objects.get(user_id=request.user.id)
     user_complete_episodes = user.completedepisode_set.filter(season=season_info).values_list('episode_id', flat=True)
     completed = False
-    if MovieStatus.objects.filter(movie=movie, status='Просмотрено'):
+    if UserMovieStatus.objects.filter(movie=movie, status='Просмотрено'):
         completed = True
     if request.method == 'POST':
         if request.POST['add_or_rem'] == '+':
@@ -274,15 +274,15 @@ def add_status(request):
     movie = Movie.objects.get(id=request.POST['movie_id'])
     user = UserProfile.objects.get(user_id=request.user.id)
     statuses = {
-        'Смотрю': MovieStatus.WATCHING,
-        'Запланировано': MovieStatus.PLANNED_TO_WATCH,
-        'Просмотрено': MovieStatus.COMPLETED,
+        'Смотрю': UserMovieStatus.WATCHING,
+        'Запланировано': UserMovieStatus.PLANNED_TO_WATCH,
+        'Просмотрено': UserMovieStatus.COMPLETED,
     }
     status_name = statuses[request.POST['status']]
-    if not MovieStatus.objects.filter(movie=movie, user=user):
-        MovieStatus.objects.create(movie=movie, user=user, status=status_name)
+    if not UserMovieStatus.objects.filter(movie=movie, user=user):
+        UserMovieStatus.objects.create(movie=movie, user=user, status=status_name)
     else:
-        new_status = MovieStatus.objects.get(movie=movie, user=user)
+        new_status = UserMovieStatus.objects.get(movie=movie, user=user)
         new_status.status = status_name
         new_status.save()
     return redirect(request.META.get('HTTP_REFERER', '/'))
@@ -293,7 +293,7 @@ def add_status(request):
 def delete_status(request):
     movie = Movie.objects.get(id=request.POST['movie_id'])
     user = UserProfile.objects.get(user_id=request.user.id)
-    MovieStatus.objects.get(movie=movie, user=user).delete()
+    UserMovieStatus.objects.get(movie=movie, user=user).delete()
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
@@ -329,7 +329,7 @@ def collection_detail(request, collection_id):
 @login_required(login_url='/accounts/login')
 def change_collection(request, collection_id):
     user = UserProfile.objects.get(user_id=request.user.id)
-    user_movies = user.moviestatus_set.all()
+    user_movies = user.usermoviestatus_set.all()
     collection = Collection.objects.get(id=collection_id)
     movies_in_collection = collection.movie.all()
     context = {
@@ -355,9 +355,9 @@ def add_movie_in_collection(request):
 @login_required(login_url='/accounts/login')
 def profile(request):
     user = UserProfile.objects.get(user_id=request.user.id)
-    planned_to_watch_count = user.moviestatus_set.filter(status=MovieStatus.PLANNED_TO_WATCH).count
-    complete_count = user.moviestatus_set.filter(status=MovieStatus.COMPLETED).count
-    watching_count = user.moviestatus_set.filter(status=MovieStatus.WATCHING).count
+    planned_to_watch_count = user.usermoviestatus_set.filter(status=UserMovieStatus.PLANNED_TO_WATCH).count
+    complete_count = user.usermoviestatus_set.filter(status=UserMovieStatus.COMPLETED).count
+    watching_count = user.usermoviestatus_set.filter(status=UserMovieStatus.WATCHING).count
     context = {
         'watching_count': watching_count,
         'complete_count': complete_count,
@@ -498,10 +498,10 @@ class ProfileStatisticsApi(APIView):
             user = UserProfile.objects.get(user__username=username)
         except UserProfile.DoesNotExist:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        all_count = user.moviestatus_set.all().count()
-        planned_count = user.moviestatus_set.filter(status=MovieStatus.PLANNED_TO_WATCH).count()
-        completed_count = user.moviestatus_set.filter(status=MovieStatus.COMPLETED).count()
-        watching_count = user.moviestatus_set.filter(status=MovieStatus.WATCHING).count()
+        all_count = user.usermoviestatus_set.all().count()
+        planned_count = user.usermoviestatus_set.filter(status=UserMovieStatus.PLANNED_TO_WATCH).count()
+        completed_count = user.usermoviestatus_set.filter(status=UserMovieStatus.COMPLETED).count()
+        watching_count = user.usermoviestatus_set.filter(status=UserMovieStatus.WATCHING).count()
         result = {
             'all_count': all_count,
             'planned_count': planned_count,
@@ -532,7 +532,7 @@ class UserMovieApi(APIView):
                 'kinopoisk_id',
             )
         elif not field_name == 'None':
-            result_data = user.moviestatus_set.filter(status=field_name).values_list(
+            result_data = user.usermoviestatus_set.filter(status=field_name).values_list(
                 'movie__name',
                 'movie__year',
                 'movie__release_year_start',
@@ -540,7 +540,7 @@ class UserMovieApi(APIView):
                 'movie__kinopoisk_id',
             )
         else:
-            result_data = user.moviestatus_set.all().values_list(
+            result_data = user.usermoviestatus_set.all().values_list(
                 'movie__name',
                 'movie__year',
                 'movie__release_year_start',
@@ -585,7 +585,7 @@ class MovieInfoAPI(APIView):
             'seasons_count': movie.seasons_count,
             'episodes_count': movie.episodes_count,
             'favorite': favorite,
-            'status': movie.moviestatus_set.get(user=user).status,
+            'status': movie.usermoviestatus_set.get(user=user).status,
         }
         return Response(data=result_data, status=status.HTTP_200_OK)
 
@@ -629,7 +629,7 @@ class ChangeStatusAPI(APIView):
 
         movie = Movie.objects.get(kinopoisk_id=movie_id)
 
-        movie_status = MovieStatus.objects.get(movie=movie, user=user)
+        movie_status = UserMovieStatus.objects.get(movie=movie, user=user)
         movie_status.status = new_status
         movie_status.save()
 

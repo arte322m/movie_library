@@ -1,6 +1,6 @@
 import requests
 
-URL_MOVIE = 'https://api.kinopoisk.dev/v1/movie'
+URL_MOVIE = 'https://api.kinopoisk.dev/v1.3/movie'
 URL_SEASON = 'https://api.kinopoisk.dev/v1/season'
 TOKEN = '3ZMWJDP-WZVM0V9-PQG4VX1-QTK87G4'
 SECOND_TOKEN = 'AGPD8ND-8BH47X9-N1TJEAH-1PG18YP'

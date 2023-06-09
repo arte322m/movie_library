@@ -3,7 +3,7 @@ import datetime
 from rest_framework.views import Response
 from rest_framework import status
 from kinokino.kinopoisk_parser import search_series_by_id
-from kinokino.models import UserProfile, Movie, MovieStatus, Season, Episode
+from kinokino.models import UserProfile, Movie, UserMovieStatus, Season, Episode
 
 
 def add_movie_episodes(username: str,
@@ -62,16 +62,16 @@ def add_movie_episodes(username: str,
                 )
                 for episodes_info in season_info['episodes']:
                     number = episodes_info['number']
-                    if episodes_info['name']:
-                        episode_name = episodes_info['name']
-                    else:
-                        episode_name = episodes_info['enName']
-                    date_str = episodes_info['date'][:10]
-                    date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+                    # if episodes_info['name']:
+                    #     episode_name = episodes_info['name']
+                    # else:
+                    #     episode_name = episodes_info['enName']
+                    # date_str = episodes_info['date'][:10]
+                    # date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
                     Episode.objects.create(
                         number=number,
-                        date=date,
-                        name=episode_name,
+                        # date=date,
+                        # name=episode_name,
                         season=new_season,
                     )
                 new_movie.episodes_count = all_episode_count
