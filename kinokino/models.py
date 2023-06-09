@@ -28,6 +28,14 @@ class Movie(models.Model):
         (ANIMATED_SERIES, 'Animated-Series'),
         (TV_SHOW, 'TV-Show'),
     ]
+    ANONS = 'anons'
+    ONGOING = 'ongoing'
+    RELEASED = 'released'
+    MOVIE_STATUS = [
+        (ANONS, 'anons'),
+        (ONGOING, 'ongoing'),
+        (RELEASED, 'released'),
+    ]
     kinopoisk_id = models.IntegerField(default=None)
     name = models.CharField(max_length=50)
     year = models.IntegerField(default=None)
@@ -38,35 +46,37 @@ class Movie(models.Model):
     release_year_end = models.IntegerField(null=True)
     episodes_count = models.IntegerField(null=True)
     favorite = models.ManyToManyField(UserProfile)
+    status = models.CharField(max_length=9, null=True, default=None, choices=MOVIE_STATUS)
 
 
 class Season(models.Model):
     movie_id = models.ForeignKey(Movie, on_delete=models.CASCADE)
     number = models.IntegerField(default=None)
     episodes_count = models.IntegerField(default=None)
+    episodes_released = models.IntegerField(default=None, null=True)
     complete = models.ManyToManyField(UserProfile)
 
 
 class Episode(models.Model):
     number = models.IntegerField(default=None)
-    date = models.DateField(default=None)
-    name = models.CharField(max_length=50, null=True)
+    # date = models.DateField(default=None)
+    # name = models.CharField(max_length=50, null=True)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, default=None)
 
 
-class MovieStatus(models.Model):
+class UserMovieStatus(models.Model):
     NONE = '------'
     PLANNED_TO_WATCH = 'Запланировано'
     WATCHING = 'Смотрю'
     COMPLETED = 'Просмотрено'
-    MOVIE_STATUS = [
+    USER_MOVIE_STATUS = [
         (PLANNED_TO_WATCH, 'запланировано'),
         (WATCHING, 'смотрю'),
         (COMPLETED, 'просмотрено'),
     ]
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, default=None)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, default=None)
-    status = models.CharField(max_length=16, choices=MOVIE_STATUS, default=None)
+    status = models.CharField(max_length=16, choices=USER_MOVIE_STATUS, default=None)
 
 
 class Collection(models.Model):

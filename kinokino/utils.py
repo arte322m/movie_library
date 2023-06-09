@@ -1,9 +1,9 @@
-import datetime
+# import datetime
 
 from rest_framework.views import Response
 from rest_framework import status
 from kinokino.kinopoisk_parser import search_series_by_id
-from kinokino.models import UserProfile, Movie, MovieStatus, Season, Episode
+from kinokino.models import UserProfile, Movie, UserMovieStatus, Season, Episode
 
 
 def add_movie_episodes(username: str,
@@ -24,10 +24,10 @@ def add_movie_episodes(username: str,
         if Movie.objects.get(kinopoisk_id=kin_id):
             movie = Movie.objects.get(kinopoisk_id=kin_id)
             try:
-                if MovieStatus.objects.get(user=user, movie=movie):
+                if UserMovieStatus.objects.get(user=user, movie=movie):
                     return Response(status=status.HTTP_200_OK)
-            except MovieStatus.DoesNotExist:
-                MovieStatus.objects.create(user=user, status=MovieStatus.PLANNED_TO_WATCH, movie=movie)
+            except UserMovieStatus.DoesNotExist:
+                UserMovieStatus.objects.create(user=user, status=UserMovieStatus.PLANNED_TO_WATCH, movie=movie)
                 return Response(status=status.HTTP_201_CREATED)
     except Movie.DoesNotExist:
 
@@ -62,16 +62,16 @@ def add_movie_episodes(username: str,
                 )
                 for episodes_info in season_info['episodes']:
                     number = episodes_info['number']
-                    if episodes_info['name']:
-                        episode_name = episodes_info['name']
-                    else:
-                        episode_name = episodes_info['enName']
-                    date_str = episodes_info['date'][:10]
-                    date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+                    # if episodes_info['name']:
+                    #     episode_name = episodes_info['name']
+                    # else:
+                    #     episode_name = episodes_info['enName']
+                    # date_str = episodes_info['date'][:10]
+                    # date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
                     Episode.objects.create(
                         number=number,
-                        date=date,
-                        name=episode_name,
+                        # date=date,
+                        # name=episode_name,
                         season=new_season,
                     )
                 new_movie.episodes_count = all_episode_count
@@ -85,6 +85,6 @@ def add_movie_episodes(username: str,
                 preview_url=preview_url,
                 year=year,
             )
-        MovieStatus.objects.create(user=user, status=MovieStatus.PLANNED_TO_WATCH, movie=new_movie)
+        UserMovieStatus.objects.create(user=user, status=UserMovieStatus.PLANNED_TO_WATCH, movie=new_movie)
 
     return Response(status=status.HTTP_201_CREATED)
