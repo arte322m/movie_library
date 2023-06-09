@@ -24,10 +24,10 @@ def add_movie_episodes(username: str,
         if Movie.objects.get(kinopoisk_id=kin_id):
             movie = Movie.objects.get(kinopoisk_id=kin_id)
             try:
-                if MovieStatus.objects.get(user=user, movie=movie):
+                if UserMovieStatus.objects.get(user=user, movie=movie):
                     return Response(status=status.HTTP_200_OK)
-            except MovieStatus.DoesNotExist:
-                MovieStatus.objects.create(user=user, status=MovieStatus.PLANNED_TO_WATCH, movie=movie)
+            except UserMovieStatus.DoesNotExist:
+                UserMovieStatus.objects.create(user=user, status=UserMovieStatus.PLANNED_TO_WATCH, movie=movie)
                 return Response(status=status.HTTP_201_CREATED)
     except Movie.DoesNotExist:
 
@@ -85,6 +85,6 @@ def add_movie_episodes(username: str,
                 preview_url=preview_url,
                 year=year,
             )
-        MovieStatus.objects.create(user=user, status=MovieStatus.PLANNED_TO_WATCH, movie=new_movie)
+        UserMovieStatus.objects.create(user=user, status=UserMovieStatus.PLANNED_TO_WATCH, movie=new_movie)
 
     return Response(status=status.HTTP_201_CREATED)
