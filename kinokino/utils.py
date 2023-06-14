@@ -2,7 +2,7 @@
 
 from rest_framework.views import Response
 from rest_framework import status
-from kinokino.kinopoisk_parser import search_series_by_id
+from kinokino.kinopoisk_api import search_series_by_id
 from kinokino.models import UserProfile, Movie, UserMovieStatus, Season, Episode
 
 

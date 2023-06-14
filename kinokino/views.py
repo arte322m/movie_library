@@ -14,7 +14,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.views import Request, APIView, Response
 
-from kinokino.kinopoisk_parser import search_function, search_film_by_name
+from kinokino.kinopoisk_api import search_function, search_film_by_name
 from kinokino.models import UserProfile, Movie, Episode, UserMovieStatus, Collection, CompletedEpisode
 from kinokino.serializers import MovieSerializer, UserSerializer, SearchingApiSerializer, AddMovieSerializer, \
     UserMoviesSerializer, MovieInfoSerializer, FavoriteMovieSerializer, MovieStatusSerializer, \
