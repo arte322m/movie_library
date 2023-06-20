@@ -26,7 +26,10 @@
                                 <button class="btn btn-primary" type="submit">Поиск</button>
                             </form>
                         </div>
+                    </div>
 
+                    <div class="col mx-2">
+                        <a href="{% url 'kinokino:shikimori_searching' %}">Поисковик шикимори</a>
                     </div>
 
                     <form method="post" action="{% url 'kinokino:switch_theme' %}">

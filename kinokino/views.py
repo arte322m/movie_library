@@ -19,7 +19,8 @@ from kinokino.models import UserProfile, Movie, Episode, UserMovieStatus, Collec
 from kinokino.serializers import MovieSerializer, UserSerializer, SearchingApiSerializer, AddMovieSerializer, \
     UserMoviesSerializer, MovieInfoSerializer, FavoriteMovieSerializer, MovieStatusSerializer, \
     SeasonsEpisodesSerializer, CompleteEpisodeSerializer
-from kinokino.utils import add_movie_episodes
+from kinokino.shikimori_api import search_anime
+from kinokino.utils import add_movie_episodes, shikimori_add_movie_episodes
 
 
 @login_required(login_url='/accounts/login')
@@ -350,6 +351,54 @@ def add_movie_in_collection(request):
     elif request.POST['fav'] == 'add':
         collection.movie.add(movie_details)
     return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+@login_required(login_url='/accounts/login')
+def shikimori_searching(request):
+    if request.method == 'POST':
+        search_text = request.POST['search_text']
+        return redirect('kinokino:shikimori_search', search_text=search_text)
+    else:
+        return render(request, 'kinokino/shikimori_search.html')
+
+
+@login_required(login_url='/accounts/login')
+def shikimori_search(request, search_text):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_data = user.usermoviestatus_set.values_list('movie__kinopoisk_id', flat=True)
+    context = {
+        'movie_data': movie_data,
+        'name': search_text,
+    }
+    search_result = cache.get(f'shikimori_search_result_{search_text}')
+    if not search_result:
+        search_result = search_anime(search_text)
+        if search_result == 'всё плохо((((':
+            return render(request, 'kinokino/search.html', {'seach_text': search_text, 'error_message': search_result})
+        cache.set(f'shikimori_search_result_{search_text}', search_result, 60 * 5)
+
+    context['search_result'] = search_result
+    return render(request, 'kinokino/shikimori_search.html', context)
+
+
+@require_POST
+@login_required(login_url='/accounts/login')
+def shikimori_add_movie(request):
+    year_start = int(request.POST['year_start'])
+    preview_url = request.POST['preview_url']
+    movie_status = request.POST['status']
+    shikimori_add_movie_episodes(
+        username=request.user.username,
+        name=request.POST['movie_name'],
+        kin_id=int(request.POST['movie_id']),
+        year=int(request.POST['movie_year']),
+        movie_type=request.POST['movie_type'],
+        movie_status=movie_status,
+        preview_url=preview_url,
+        year_start=year_start,
+        # year_end=year_end,
+    )
+    return redirect('kinokino:search', search_text=request.POST['search_text'])
 
 
 @login_required(login_url='/accounts/login')

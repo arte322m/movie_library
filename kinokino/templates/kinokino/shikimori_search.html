@@ -1,0 +1,56 @@
+{% extends 'kinokino/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <div class="nav col-sm-8 justify-content-center">
+        <div class="col mx-2">
+            <form action="{% url 'kinokino:shikimori_searching' %}" class="d-flex px-1" role="search" method="post">
+                {% csrf_token %}
+                <input id="Search" class="form-control text-bg me-sm-2" type="search" placeholder="Поиск аниме" aria-label="Search" value="{{ name }}" name="search_text" required>
+                <button class="btn btn-primary" type="submit">Поиск</button>
+            </form>
+        </div>
+    </div>
+
+    {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+    {% if search_result %}
+        <ol>
+            {% for film in search_result %}
+                <div class="row mt-4">
+                    <li>
+                        <div class="row">
+                            <div class="col-2">
+                                <div class="row">
+                                    <img style="width: 150px; height: 225px" src="https://shikimori.me/{{ film.image.original }}">
+                                </div>
+                                <div class="row">
+                                    {{ film.russian }}
+                                    ({{ film.aired_on|slice:":4" }} - {{ film.released_on|slice:":4" }})
+                                </div>
+                            </div>
+                            {% if film.id not in movie_data %}
+                                <div class="col">
+                                    <form action="{% url 'kinokino:add_movie' %}" method="post">
+                                        {% csrf_token %}
+                                        <input name="search_text" value="{{ name }}" hidden>
+                                        <input name="movie_name" value="{{ film.russian }}" hidden>
+                                        <input name="movie_id" value="{{ film.id }}" hidden>
+                                        <input name="preview_url" value="{{ film.poster.previewUrl }}" hidden>
+                                        <input name="status" value="{{ film.status }}" hidden>
+                                        <input name="episodes_count" value="{{ film.episodes }}" hidden>
+                                        <input name="episodes_aired" value="{{ film.episodes_aired }}" hidden>
+                                        <input name="year_start" value="{{ film.released_on|slice:":4" }}" hidden>
+                                        <button type="submit">like this</button>
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </li>
+                </div>
+            {% endfor %}
+        </ol>
+    {% endif %}
+
+{% endblock %}

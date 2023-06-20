@@ -36,7 +36,8 @@ class Movie(models.Model):
         (ONGOING, 'ongoing'),
         (RELEASED, 'released'),
     ]
-    kinopoisk_id = models.IntegerField(default=None)
+    kinopoisk_id = models.IntegerField(default=None, null=True)
+    shikimori_id = models.IntegerField(default=None, null=True)
     name = models.CharField(max_length=50)
     year = models.IntegerField(default=None)
     type = models.CharField(max_length=15, choices=TYPE_MOVIE, default=None, null=True)
@@ -47,6 +48,7 @@ class Movie(models.Model):
     episodes_count = models.IntegerField(null=True)
     favorite = models.ManyToManyField(UserProfile)
     status = models.CharField(max_length=9, null=True, default=None, choices=MOVIE_STATUS)
+    next_episode_date = models.DateField(null=True, default=None)
 
 
 class Season(models.Model):
@@ -59,8 +61,6 @@ class Season(models.Model):
 
 class Episode(models.Model):
     number = models.IntegerField(default=None)
-    # date = models.DateField(default=None)
-    # name = models.CharField(max_length=50, null=True)
     season = models.ForeignKey(Season, on_delete=models.CASCADE, default=None)
 
 
