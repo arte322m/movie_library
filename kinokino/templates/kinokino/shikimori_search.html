@@ -3,15 +3,15 @@
 
 {% block content %}
 
-    <div class="nav col-sm-8 justify-content-center">
-        <div class="col mx-2">
-            <form action="{% url 'kinokino:shikimori_searching' %}" class="d-flex px-1" role="search" method="post">
-                {% csrf_token %}
-                <input id="Search" class="form-control text-bg me-sm-2" type="search" placeholder="Поиск аниме" aria-label="Search" value="{{ name }}" name="search_text" required>
-                <button class="btn btn-primary" type="submit">Поиск</button>
-            </form>
-        </div>
-    </div>
+{#    <div class="nav col-sm-8 justify-content-center">#}
+{#        <div class="col mx-2">#}
+{#            <form action="{% url 'kinokino:shikimori_searching' %}" class="d-flex px-1" role="search" method="post">#}
+{#                {% csrf_token %}#}
+{#                <input id="Search" class="form-control text-bg me-sm-2" type="search" placeholder="Поиск аниме" aria-label="Search" value="{{ name }}" name="search_text" required>#}
+{#                <button class="btn btn-primary" type="submit">Поиск</button>#}
+{#            </form>#}
+{#        </div>#}
+{#    </div>#}
 
     {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 

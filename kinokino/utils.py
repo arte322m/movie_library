@@ -9,16 +9,12 @@ from kinokino.models import UserProfile, Movie, UserMovieStatus, Season, Episode
 def add_movie_episodes(username: str,
                        name: str,
                        kin_id: int,
-                       year: int,
+                       tv: bool,
                        movie_type: str,
                        preview_url: str,
                        year_start: int,
                        year_end: int):
 
-    if not year_start:
-        year_start = None
-    if not year_end:
-        year_end = None
     user = UserProfile.objects.get(user__username=username)
     try:
         if Movie.objects.get(kinopoisk_id=kin_id):
@@ -31,14 +27,13 @@ def add_movie_episodes(username: str,
                 return Response(status=status.HTTP_201_CREATED)
     except Movie.DoesNotExist:
 
-        if year_start:
+        if tv:
             all_episode_count = 0
             seasons = []
             search_result = search_series_by_id(kin_id)
             new_movie = Movie.objects.create(
                 name=name,
                 kinopoisk_id=kin_id,
-                year=year,
                 preview_url=preview_url,
                 type=movie_type,
                 release_year_start=year_start,
@@ -56,7 +51,7 @@ def add_movie_episodes(username: str,
                 episodes_count = len(season_info['episodes'])
                 all_episode_count += episodes_count
                 new_season = Season.objects.create(
-                    movie_id=new_movie,
+                    movie=new_movie,
                     number=number,
                     episodes_count=episodes_count
                 )
@@ -75,7 +70,7 @@ def add_movie_episodes(username: str,
                 kinopoisk_id=kin_id,
                 type=movie_type,
                 preview_url=preview_url,
-                year=year,
+                release_year_start=year_start,
             )
         UserMovieStatus.objects.create(user=user, status=UserMovieStatus.PLANNED_TO_WATCH, movie=new_movie)
 
@@ -133,7 +128,7 @@ def shikimori_add_movie_episodes(username: str,
                 episodes_count = len(season_info['episodes'])
                 all_episode_count += episodes_count
                 new_season = Season.objects.create(
-                    movie_id=new_movie,
+                    movie=new_movie,
                     number=number,
                     episodes_count=episodes_count
                 )
