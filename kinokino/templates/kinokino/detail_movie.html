@@ -86,7 +86,7 @@
             <li>
                 <div class="row">
                     <div class="col-1">
-                        <a href="{% url 'kinokino:detail_season' season.movie_id.kinopoisk_id season.number %}">
+                        <a href="{% url 'kinokino:detail_season' season.movie.kinopoisk_id season.number %}">
                             {{ season.number }} ({{ season.episodes_count }})
                         </a>
                     </div>

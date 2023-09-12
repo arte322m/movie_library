@@ -14,12 +14,13 @@ from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.views import Request, APIView, Response
 
-from kinokino.kinopoisk_parser import search_function, search_film_by_name
+from kinokino.kinopoisk_api import search_function, search_film_by_name
 from kinokino.models import UserProfile, Movie, Episode, UserMovieStatus, Collection, CompletedEpisode
 from kinokino.serializers import MovieSerializer, UserSerializer, SearchingApiSerializer, AddMovieSerializer, \
     UserMoviesSerializer, MovieInfoSerializer, FavoriteMovieSerializer, MovieStatusSerializer, \
     SeasonsEpisodesSerializer, CompleteEpisodeSerializer
-from kinokino.utils import add_movie_episodes
+from kinokino.shikimori_api import search_anime
+from kinokino.utils import add_movie_episodes, shikimori_add_movie_episodes
 
 
 @login_required(login_url='/accounts/login')
@@ -42,6 +43,7 @@ def login_view(request):
                 request.session['theme'] = UserProfile.DARK
             else:
                 request.session['theme'] = UserProfile.LIGHT
+            request.session['type_of_search'] = str(UserProfile.type_of_search)
             return redirect(reverse('kinokino:main'))
         if not User.objects.filter(username=username):
             return render(request, 'kinokino/login.html', {'error_message': 'Такого логина не существует'})
@@ -93,6 +95,21 @@ def switch_theme(request):
     return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
+@login_required(login_url='/accounts/login')
+@require_POST
+def switch_type_of_search(request):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    if request.session['type_of_search'] == UserProfile.KINOPOISK:
+        user.type_of_search = UserProfile.SHIKIMORI
+        user.save()
+        request.session['type_of_search'] = UserProfile.SHIKIMORI
+    else:
+        user.type_of_search = UserProfile.KINOPOISK
+        user.save()
+        request.session['type_of_search'] = UserProfile.KINOPOISK
+    return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
 @require_POST
 @login_required(login_url='/accounts/login')
 def searching(request):
@@ -113,7 +130,7 @@ def search(request, search_text):
             ('name', search_text)
         ])
         if search_result == 'всё плохо((((':
-            return render(request, 'kinokino/search.html', {'seach_text': search_text, 'error_message': search_result})
+            return render(request, 'kinokino/search.html', {'search_text': search_text, 'error_message': search_result})
         cache.set(f'search_result_{search_text}', search_result, 60 * 5)
 
     context['search_result'] = search_result
@@ -125,17 +142,19 @@ def search(request, search_text):
 def add_movie(request):
     if request.POST['release_years']:
         year_end = 0
+        tv = True
         if request.POST['release_years'][23:27] != 'None':
             year_end = int(request.POST['release_years'][23:27])
         year_start = int(request.POST['release_years'][10:14])
     else:
-        year_start = 0
+        year_start = int(request.POST['movie_year'])
         year_end = 0
+        tv = False
     add_movie_episodes(
         username=request.user.username,
         name=request.POST['movie_name'],
+        tv=tv,
         kin_id=int(request.POST['movie_id']),
-        year=int(request.POST['movie_year']),
         movie_type=request.POST['movie_type'],
         preview_url=request.POST['preview_url'],
         year_start=year_start,
@@ -353,6 +372,55 @@ def add_movie_in_collection(request):
 
 
 @login_required(login_url='/accounts/login')
+def shikimori_searching(request):
+    if request.method == 'POST':
+        search_text = request.POST['search_text']
+        return redirect('kinokino:shikimori_search', search_text=search_text)
+    else:
+        return render(request, 'kinokino/shikimori_search.html')
+
+
+@login_required(login_url='/accounts/login')
+def shikimori_search(request, search_text):
+    user = UserProfile.objects.get(user_id=request.user.id)
+    movie_data = user.usermoviestatus_set.values_list('movie__kinopoisk_id', flat=True)
+    context = {
+        'movie_data': movie_data,
+        'name': search_text,
+    }
+    search_result = cache.get(f'shikimori_search_result_{search_text}')
+    if not search_result:
+        search_result = search_anime(search_text)
+        if search_result == 'всё плохо((((':
+            return render(request, 'kinokino/search.html', {'search_text': search_text, 'error_message': search_result})
+        cache.set(f'shikimori_search_result_{search_text}', search_result, 60 * 5)
+
+    context['search_result'] = search_result
+    return render(request, 'kinokino/shikimori_search.html', context)
+
+
+@require_POST
+@login_required(login_url='/accounts/login')
+def shikimori_add_movie(request):
+    year_start = int(request.POST['year_start'])
+    preview_url = request.POST['preview_url']
+    movie_status = request.POST['status']
+
+    shikimori_add_movie_episodes(
+        username=request.user.username,
+        name=request.POST['movie_name'],
+        kin_id=int(request.POST['movie_id']),
+        year=int(request.POST['movie_year']),
+        movie_type=request.POST['movie_type'],
+        movie_status=movie_status,
+        preview_url=preview_url,
+        year_start=year_start,
+        # year_end=year_end,
+    )
+    return redirect('kinokino:search', search_text=request.POST['search_text'])
+
+
+@login_required(login_url='/accounts/login')
 def profile(request):
     user = UserProfile.objects.get(user_id=request.user.id)
     planned_to_watch_count = user.usermoviestatus_set.filter(status=UserMovieStatus.PLANNED_TO_WATCH).count
@@ -463,27 +531,28 @@ class AddMovieApi(APIView):
         username = data['username']
         name = found_film['name']
         kin_id = found_film['id']
-        year = found_film['year']
+        year_start = found_film['year']
         movie_type = found_film['type']
         preview_url = found_film['poster']['previewUrl']
         try:
             release_years = found_film['releaseYears']
         except KeyError:
-            year_start = 0
             year_end = 0
+            tv = 0
         else:
             year_start = release_years[0]['start']
             year_end = release_years[0]['end']
+            tv = 1
 
         return add_movie_episodes(
             username=username,
             name=name,
             kin_id=kin_id,
-            year=year,
             movie_type=movie_type,
             preview_url=preview_url,
             year_start=year_start,
             year_end=year_end,
+            tv=tv,
         )
 
 
